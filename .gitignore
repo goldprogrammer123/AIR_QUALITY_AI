@@ -2,4 +2,4 @@
 myvenv/
 venv/
 .env/
-.env.*
+.env.*.env

@@ -41,6 +41,11 @@ df = client.query_api().query_data_frame(query)
 if isinstance(df, list):
     df = pd.concat(df, ignore_index=True)
 
+    print(df.head())
+print(df.tail())
+print(df.columns)
+print("Rows:", len(df))
+
     # CLEAN
 df = df.drop(columns=[
     "result",
@@ -57,6 +62,9 @@ df["day"] = df["_time"].dt.day
 df["month"] = df["_time"].dt.month
 df = df.drop(columns=["_time"])
 
+print("Rows after pivot:", len(df))
+
+print(df.isna().sum())
 #  handle missing values 
 df = df.dropna()
 
@@ -149,6 +157,8 @@ X = df[
         "humidity",
         "pm10",
         "pm25",
+        "no2",
+        "so2",
         "pressure",
         "temperature",
         "hour",
@@ -158,6 +168,10 @@ X = df[
 ]
 
 y = df["aqi"]
+
+print(df["aqi"].describe())
+
+print("Rows:", len(df))
 
 # splitting the dataset and Training the model 
 from sklearn.model_selection import train_test_split
@@ -170,7 +184,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 model = RandomForestRegressor(
-    n_estimators=100,
+    n_estimators=300,
+    max_depth=20,
     random_state=42
 )
 
@@ -178,6 +193,18 @@ model.fit(X_train, y_train)
 
 print("Model trained successfully!")
 
+# feature importance 
+importance = pd.DataFrame({
+    "feature": X.columns,
+    "importance": model.feature_importances_
+})
+
+print(
+    importance.sort_values(
+        by="importance",
+        ascending=False
+    )
+)
 # Model prediction
 
 preds = model.predict(X_test)
