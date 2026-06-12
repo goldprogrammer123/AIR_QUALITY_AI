@@ -1,140 +1,78 @@
-from pathlib import Path
-import sys
+# models/train_regression.py
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import joblib
-import pandas as pd
 import numpy as np
+import pandas as pd
 
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from sklearn.ensemble import RandomForestRegressor
-# import of retraining the model 
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
-
+from features.build_features import build_features
 from utils.model_backups import backup_model
 from utils.history_manager import save_metrics
 
-from sklearn.metrics import (
-    mean_absolute_error,
-    mean_squared_error,
-    r2_score
-)
+BASE_DIR = Path(__file__).resolve().parent.parent
+MODEL_PATH = BASE_DIR / "models_saved" / "aqi_regression.pkl"
 
-from features.build_features import build_features
-
-# --------------------------------
-# LOAD FEATURED DATASET
-# --------------------------------
-
+# ======================
+# LOAD DATA
+# ======================
 X, y, df = build_features()
-
-print("Dataset Shape:", df.shape)
-
-# --------------------------------
-# TIME-BASED TRAIN TEST SPLIT
-# --------------------------------
-
 df = df.sort_values("_time")
 
+# ======================
+# SPLIT
+# ======================
 split = int(len(df) * 0.8)
+X_train, X_test = X.iloc[:split], X.iloc[split:]
+y_train, y_test = y.iloc[:split], y.iloc[split:]
 
-X_train = X.iloc[:split]
-X_test = X.iloc[split:]
-
-y_train = y.iloc[:split]
-y_test = y.iloc[split:]
-
-print("Train Size:", len(X_train))
-print("Test Size :", len(X_test))
-
-# --------------------------------
+# ======================
 # MODEL
-# --------------------------------
-
-model = RandomForestRegressor(
-    n_estimators=300,
-    max_depth=20,
+# ======================
+model = XGBRegressor(
+    n_estimators=500,
+    learning_rate=0.03,
+    max_depth=8,
+    subsample=0.8,
+    colsample_bytree=0.8,
     random_state=42,
     n_jobs=-1
 )
 
-# --------------------------------
-# TRAIN
-# --------------------------------
-
 model.fit(X_train, y_train)
 
-print("Model trained successfully!")
-
-# --------------------------------
-# FEATURE IMPORTANCE
-# --------------------------------
-
-importance = pd.DataFrame({
-    "feature": X.columns,
-    "importance": model.feature_importances_
-})
-
-print("\nFeature Importance")
-print(
-    importance.sort_values(
-        by="importance",
-        ascending=False
-    )
-)
-
-# --------------------------------
-# PREDICTIONS
-# --------------------------------
-
+# ======================
+# EVALUATION
+# ======================
 preds = model.predict(X_test)
 
-print("\nSample Predictions")
-print("Predicted:", preds[:10])
-print("Actual   :", y_test.iloc[:10].values)
-
-# --------------------------------
-# EVALUATION
-# --------------------------------
-
 mae = mean_absolute_error(y_test, preds)
-mse = mean_squared_error(y_test, preds)
-rmse = np.sqrt(mse)
+rmse = np.sqrt(mean_squared_error(y_test, preds))
 r2 = r2_score(y_test, preds)
 
-print("\nMODEL EVALUATION")
-print("MAE  =", round(mae, 3))
-print("MSE  =", round(mse, 3))
-print("RMSE =", round(rmse, 3))
-print("R2   =", round(r2, 3))
+print("\nREGRESSION RESULTS")
+print(f"MAE: {mae:.3f}")
+print(f"RMSE: {rmse:.3f}")
+print(f"R2: {r2:.3f}")
 
-# save metrics after evaluation
+# ======================
+# SAVE HISTORY
+# ======================
+save_metrics("regression", len(df), {
+    "mae": float(mae),
+    "rmse": float(rmse),
+    "r2": float(r2)
+})
 
-save_metrics(
-    "regression",
-    len(df),
-    {
-        "mae": float(mae),
-        "rmse": float(rmse),
-        "r2": float(r2)
-    }
-)
-# --------------------------------
-# SAVE MODEL
-# --------------------------------
-# Saving backups model 
-MODEL_PATH = BASE_DIR / "models_saved" / "aqi_regression.pkl"
-
-backup_model(MODEL_PATH, model_name="regression")
-
+# ======================
+# BACKUP + SAVE
+# ======================
+backup_model(MODEL_PATH, "regression")
 joblib.dump(model, MODEL_PATH)
 
-# save new model 
-joblib.dump(model, MODEL_PATH)
-print("Regression model saved")
-
-
-
+print("Regression model saved.")
