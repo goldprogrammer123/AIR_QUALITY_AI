@@ -1,6 +1,6 @@
 # models/train_forecast.py
 
-import sys, os
+import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -49,7 +49,11 @@ features = [
     "co2", "humidity", "pressure", "temperature",
     "hour", "day", "month",
     "aqi_lag1", "aqi_lag2", "aqi_lag3",
-    "co2_lag1", "pm25_lag1"
+    "aqi_lag6", "aqi_lag12", "aqi_lag24",
+    "co2_lag1", "pm25_lag1",
+    "aqi_roll3", "aqi_roll6", "aqi_roll12",
+    "pm25_roll3", "pm25_roll6",
+    "co2_roll3",
 ]
 
 features = [f for f in features if f in df.columns]

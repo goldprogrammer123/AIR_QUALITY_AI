@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 # =====================================================
@@ -23,21 +24,26 @@ from data.fetch_data import fetch_raw_data
 cache_file = BACKEND_DIR / "data" / "cache" / "raw_data.parquet"
 
 # =====================================================
-# FETCH ONLY IF CACHE NOT EXISTS
+# FETCH IF CACHE IS MISSING OR OLDER THAN 24 HOURS
+# Daily cron job triggers a fresh InfluxDB pull;
+# manual mid-day runs reuse the existing cache.
 # =====================================================
-if not cache_file.exists():
-    print("\nFetching data from InfluxDB...")
+CACHE_MAX_AGE_SECONDS = 24 * 60 * 60  # 24 hours
 
+cache_is_stale = (
+    not cache_file.exists() or
+    (time.time() - cache_file.stat().st_mtime) > CACHE_MAX_AGE_SECONDS
+)
+
+if cache_is_stale:
+    print("\nFetching latest data from InfluxDB...")
     df = fetch_raw_data()
-
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(cache_file, index=False)
-
-    print(f"Cache created: {cache_file}")
-    print(f"Rows: {len(df)}")
-
+    print(f"Cache updated — total rows: {len(df)}")
 else:
-    print("\nUsing cached data.")
+    age_hours = (time.time() - cache_file.stat().st_mtime) / 3600
+    print(f"\nUsing cached data (age: {age_hours:.1f}h — refresh after 24h).")
 
 # =====================================================
 # TRAIN MODELS
@@ -45,7 +51,7 @@ else:
 scripts = [
     BACKEND_DIR / "models" / "train_regression.py",
     BACKEND_DIR / "models" / "train_trend.py",
-    BACKEND_DIR / "models" / "train_forecast.py",
+    BACKEND_DIR / "models" / "train_lstm_forecast.py",
 ]
 
 for script in scripts:

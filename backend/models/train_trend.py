@@ -26,7 +26,7 @@ df = df.sort_values("_time")
 # ======================
 # TARGET
 # ======================
-df["aqi_future"] = df["aqi"].shift(1)
+df["aqi_future"] = df["aqi"].shift(-1)
 df["trend"] = (df["aqi_future"] > df["aqi"]).astype(int)
 
 df = df.dropna(subset=[

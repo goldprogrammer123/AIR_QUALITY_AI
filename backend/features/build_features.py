@@ -100,18 +100,11 @@ def build_features():
     df["hour"] = df["_time"].dt.hour
     df["day"] = df["_time"].dt.day
     df["month"] = df["_time"].dt.month
+    df["day_of_week"] = df["_time"].dt.dayofweek  # 0=Monday … 6=Sunday
 
     # ==========================================
     # CLEAN DATA
     # ==========================================
-
-    numeric_cols = df.select_dtypes(
-        include=["number"]
-    ).columns
-
-    df[numeric_cols] = df[numeric_cols].fillna(
-        df[numeric_cols].median()
-    )
 
     if "co2" in df.columns:
         df = df[df["co2"] < 5000]
@@ -121,6 +114,17 @@ def build_features():
 
     if "pm10" in df.columns:
         df = df[df["pm10"] < 1000]
+
+    # Fill sensor NaNs BEFORE creating lag/rolling features so that
+    # dropna() at the end only removes the small number of boundary
+    # rows that the shift operations genuinely cannot fill.
+    numeric_cols = df.select_dtypes(
+        include=["number"]
+    ).columns
+
+    df[numeric_cols] = df[numeric_cols].fillna(
+        df[numeric_cols].median()
+    )
 
     # ==========================================
     # ENSURE REQUIRED POLLUTANT COLUMNS EXIST
@@ -162,6 +166,11 @@ def build_features():
     print("\nAQI Statistics")
     print(df["aqi"].describe())
 
+    print("\nAQI Unique Values:")
+    print(df["aqi"].nunique())
+
+    print("\nTop AQI values:")
+    print(df["aqi"].value_counts().head(20))
     # ==========================================
     # SORT BY TIME
     # ==========================================
@@ -197,8 +206,11 @@ def build_features():
     df["aqi_future"] = df["aqi"].shift(-1)
 
 
-    # remove rows created by lagging
-    df = df.ffill().bfill()
+    # Drop only the boundary rows that shifts cannot fill:
+    # first 24 rows (from aqi_lag24) and last 1 row (from aqi_future).
+    drop_cols = ["aqi_future", "aqi_lag1", "aqi_lag24"]
+    drop_cols = [c for c in drop_cols if c in df.columns]
+    df = df.dropna(subset=drop_cols)
 
     print(f"Processed rows: {len(df)}")
 

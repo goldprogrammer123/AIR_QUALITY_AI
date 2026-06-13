@@ -2,18 +2,18 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-HISTORY_FILE = Path("backend/model_history/training_history.json")
+HISTORY_FILE = Path(__file__).resolve().parent.parent / "model_history" / "training_history.json"
 
 def save_metrics(model_name, dataset_size, metrics):
 
-    # create file if not exists
+    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+
     if HISTORY_FILE.exists():
         with open(HISTORY_FILE, "r") as f:
             history = json.load(f)
     else:
         history = {}
 
-    # IMPORTANT FIX: auto-create model key
     if model_name not in history:
         history[model_name] = []
 
