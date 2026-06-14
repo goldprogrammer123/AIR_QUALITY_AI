@@ -1,0 +1,201 @@
+/* ═══════════════════════════════════════
+   GLOBAL — Glassmorphism design system
+   ═══════════════════════════════════════ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  /* Light blue → light green → soft white gradient */
+  background: linear-gradient(135deg, #b3d9f7 0%, #c5efd5 45%, #dff2fb 75%, #e8f7f0 100%);
+  background-attachment: fixed;
+  color: #1a3a5c;
+  overflow-x: hidden;
+}
+
+/* ── Navbar offset ── */
+.main-content {
+  padding-top: 74px;
+  min-height: calc(100vh - 74px);
+}
+
+/* ── Global container ── */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Global responsive ── */
+@media (max-width: 1024px) {
+  body { font-size: 15px; }
+}
+
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  .main-content { padding-top: 64px; }
+}
+
+@media (max-width: 480px) {
+  body { font-size: 13px; }
+}
+
+/* ══════════════════════════
+   GLASS CARD — reusable
+   ══════════════════════════ */
+.glass-card {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 22px;
+  box-shadow:
+    0 8px 32px rgba(31, 78, 135, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.glass-card-dark {
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(31, 78, 135, 0.08);
+}
+
+/* ══════════════════════════
+   ANIMATED BACKGROUND BLOBS
+   ══════════════════════════ */
+.bg-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, rgba(79, 195, 247, 0.35), transparent 70%);
+  top: -180px;
+  right: -120px;
+  animation: blobFloat 18s ease-in-out infinite alternate;
+}
+
+.blob-2 {
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(129, 199, 132, 0.30), transparent 70%);
+  bottom: -120px;
+  left: -80px;
+  animation: blobFloat 22s ease-in-out infinite alternate-reverse;
+}
+
+.blob-3 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(79, 195, 247, 0.18), transparent 70%);
+  top: 40%;
+  left: 35%;
+  animation: blobFloat 14s ease-in-out infinite alternate;
+}
+
+@keyframes blobFloat {
+  0%   { transform: translate(0, 0)   scale(1); }
+  50%  { transform: translate(25px, 20px) scale(1.08); }
+  100% { transform: translate(-15px, 30px) scale(0.95); }
+}
+
+/* ══════════════════════════
+   SHARED — Loading / Error
+   ══════════════════════════ */
+.loading-screen,
+.error-screen {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.spinner {
+  width: 52px;
+  height: 52px;
+  border: 4px solid rgba(79, 195, 247, 0.25);
+  border-top-color: #4fc3f7;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-screen p {
+  color: #4a6fa5;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.error-card {
+  padding: 36px 40px;
+  text-align: center;
+  max-width: 420px;
+}
+
+.error-icon { font-size: 42px; display: block; margin-bottom: 12px; }
+.error-card h3 { font-size: 20px; color: #e74c3c; margin-bottom: 8px; }
+.error-card p  { font-size: 14px; color: #4a6fa5; line-height: 1.6; }
+
+/* ══════════════════════════
+   SHARED — Card title
+   ══════════════════════════ */
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a3a5c;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #4fc3f7, #66bb6a);
+}
+
+/* ══════════════════════════
+   SHARED — Pulse dot
+   ══════════════════════════ */
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4fc3f7;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.6); opacity: 0.5; }
+}
+
+/* ══════════════════════════
+   SCROLLBAR
+   ══════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.08); }
+::-webkit-scrollbar-thumb { background: rgba(79, 195, 247, 0.45); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(79, 195, 247, 0.7); }

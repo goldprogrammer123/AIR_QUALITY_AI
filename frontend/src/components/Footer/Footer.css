@@ -1,0 +1,151 @@
+.footer {
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.30);
+  margin-top: 60px;
+}
+
+/* ── Main grid ── */
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 52px 28px 36px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.2fr 1fr;
+  gap: 40px;
+}
+
+/* ── Brand ── */
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a3a5c;
+  margin-bottom: 14px;
+}
+
+.footer-logo-icon { font-size: 22px; }
+.logo-air         { color: #4fc3f7; }
+.logo-ai          { color: #66bb6a; }
+
+.footer-tagline {
+  font-size: 13px;
+  color: #4a6fa5;
+  line-height: 1.7;
+  margin-bottom: 14px;
+  max-width: 280px;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: #8aafcc;
+}
+
+/* ── Column heading ── */
+.footer-heading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #4a6fa5;
+  margin-bottom: 16px;
+}
+
+/* ── Quick links ── */
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links a {
+  text-decoration: none;
+  font-size: 14px;
+  color: #2c4a6a;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover { color: #4fc3f7; }
+
+/* ── Sensor nodes ── */
+.footer-node {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #27ae60;
+  flex-shrink: 0;
+  margin-top: 5px;
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 5px rgba(39, 174, 96, 0); }
+}
+
+.footer-node strong { display: block; font-size: 13px; color: #1a3a5c; font-weight: 600; }
+.footer-node small  { display: block; font-size: 11px; color: #8aafcc; margin-top: 2px; }
+
+/* ── Tech stack ── */
+.footer-tech {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.footer-tech li {
+  font-size: 13px;
+  color: #4a6fa5;
+  font-weight: 500;
+}
+
+/* ── Bottom bar ── */
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.20);
+  text-align: center;
+  padding: 16px 28px;
+}
+
+.footer-bottom p {
+  font-size: 12px;
+  color: #8aafcc;
+}
+
+/* ══════════════════════
+   RESPONSIVE
+   ══════════════════════ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-tagline { max-width: 100%; }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    padding: 36px 20px 24px;
+    gap: 28px;
+  }
+
+  .footer-brand { grid-column: unset; }
+}

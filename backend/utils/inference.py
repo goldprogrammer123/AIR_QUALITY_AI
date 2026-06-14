@@ -1,4 +1,5 @@
 import sys
+import time
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -10,6 +11,10 @@ from datetime import datetime, timezone
 from data.fetch_data import fetch_recent_data
 from utils.aqi_calculator import compute_aqi, pm25_bp, pm10_bp, no2_bp, so2_bp
 from utils.sequence_builder import load_scalers, LOOK_BACK
+
+# In-memory cache so InfluxDB + model inference runs at most once per 5 minutes
+_cache: dict = {"result": None, "ts": 0.0}
+_CACHE_TTL = 300  # seconds
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -132,7 +137,12 @@ def run_inference() -> dict:
     """
     Fetch the last 72 hours, run all three models, return predictions
     and current pollutant levels ready for the API to serve.
+    Results are cached for 5 minutes to avoid hammering InfluxDB.
     """
+    now = time.time()
+    if _cache["result"] and (now - _cache["ts"]) < _CACHE_TTL:
+        return _cache["result"]
+
     models = load_models()
 
     raw_df = fetch_recent_data(hours=72)
@@ -189,7 +199,7 @@ def run_inference() -> dict:
         "temperature": _safe("temperature"),
     }
 
-    return {
+    result = {
         "current_aqi":      round(aqi_pred, 2),
         "trend_direction":  "rising" if rising else "falling",
         "trend_confidence": round(confidence * 100, 1),
@@ -197,3 +207,9 @@ def run_inference() -> dict:
         "pollutants":       pollutants,
         "timestamp":        datetime.now(timezone.utc).isoformat(),
     }
+
+    # Store in cache with current timestamp
+    _cache["result"] = result
+    _cache["ts"] = time.time()
+
+    return result

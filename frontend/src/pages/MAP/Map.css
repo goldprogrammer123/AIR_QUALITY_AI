@@ -1,0 +1,297 @@
+.map-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+/* ══════════════════════════════════
+   RESPONSIVE — Map page
+   ══════════════════════════════════ */
+
+/* Large tablet */
+@media (max-width: 1024px) {
+  .map-page { padding: 20px 20px 48px; }
+  .map-title { font-size: 26px; }
+  .map-header { gap: 16px; }
+  .legend-card { min-width: 200px; }
+  .leaflet-map { height: 400px; }
+  .sensor-cards { grid-template-columns: 1fr; }
+}
+
+/* Tablet / mobile */
+@media (max-width: 768px) {
+  .map-page { padding: 16px 16px 40px; }
+
+  /* Stack header above legend */
+  .map-header { flex-direction: column; }
+  .legend-card { width: 100%; min-width: unset; }
+
+  /* Shorter map on mobile */
+  .leaflet-map { height: 300px; }
+
+  /* Sensor cards full width */
+  .sensor-cards { grid-template-columns: 1fr; gap: 14px; }
+  .sensor-card  { padding: 18px; }
+  .sc-name      { font-size: 15px; }
+
+  /* Compact AQI circle in sensor card */
+  .sc-aqi-circle { width: 80px; height: 80px; }
+  .sc-aqi-num    { font-size: 24px; }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .map-title    { font-size: 22px; }
+  .leaflet-map  { height: 260px; }
+
+  .sc-aqi-row   { flex-direction: column; align-items: flex-start; }
+  .sc-aqi-circle { width: 100%; height: 70px; border-radius: 14px; flex-direction: row; gap: 12px; }
+  .sc-aqi-num   { font-size: 28px; }
+}
+
+/* ─── these keep the original selectors below intact ─── */
+.map-loading,
+.map-error {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* ── Header row ── */
+.map-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.map-header-inner { flex: 1; }
+
+.map-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a3a5c;
+  margin-bottom: 6px;
+}
+
+.map-sub {
+  font-size: 15px;
+  color: #4a6fa5;
+  line-height: 1.6;
+}
+
+/* ── Legend card ── */
+.legend-card {
+  padding: 18px 22px;
+  min-width: 240px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-range {
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.legend-vals {
+  color: #6a8faf;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ══════════════════
+   LEAFLET MAP
+   ══════════════════ */
+.map-container-wrap {
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 32px rgba(31, 78, 135, 0.12);
+  margin-bottom: 24px;
+}
+
+.leaflet-map {
+  height: 460px;
+  width: 100%;
+  z-index: 1;
+}
+
+/* ── Custom popup styling ── */
+.aqi-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(31, 78, 135, 0.15);
+  padding: 0;
+}
+
+.aqi-popup .leaflet-popup-tip-container { display: none; }
+
+.popup-inner {
+  padding: 20px;
+  min-width: 200px;
+}
+
+.popup-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a3a5c;
+  margin-bottom: 4px;
+}
+
+.popup-desc {
+  font-size: 12px;
+  color: #6a8faf;
+  margin-bottom: 14px;
+}
+
+.popup-aqi {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.popup-aqi-num {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.popup-aqi-label { font-size: 14px; font-weight: 600; }
+
+.popup-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.popup-stats { display: flex; flex-direction: column; gap: 6px; }
+
+.popup-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.popup-stat span  { color: #6a8faf; }
+.popup-stat strong { color: #1a3a5c; }
+
+/* ══════════════════
+   SENSOR CARDS
+   ══════════════════ */
+.sensor-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.sensor-card { padding: 24px 24px; }
+
+.sc-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.sc-icon { font-size: 30px; }
+
+.sc-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a3a5c;
+}
+
+.sc-desc {
+  font-size: 12px;
+  color: #6a8faf;
+  margin-top: 2px;
+}
+
+.sc-status {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #27ae60;
+}
+
+.sc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.sc-aqi-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sc-aqi-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid;
+  background: rgba(255,255,255,0.20);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sc-aqi-num   { font-size: 30px; font-weight: 800; line-height: 1; }
+.sc-aqi-label { font-size: 12px; color: #4a6fa5; font-weight: 600; }
+
+.sc-details { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.sc-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  padding-bottom: 6px;
+}
+
+.sc-detail-label { color: #6a8faf; }
+.sc-detail-val   { font-weight: 600; color: #1a3a5c; }
+
+.sc-coords {
+  font-size: 11px;
+  color: #8aafcc;
+  margin-top: 4px;
+}

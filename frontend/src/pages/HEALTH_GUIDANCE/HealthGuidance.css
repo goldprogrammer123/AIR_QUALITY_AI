@@ -1,0 +1,287 @@
+/* ══════════════════════════════════
+   RESPONSIVE — Health Guidance
+   ══════════════════════════════════ */
+
+/* Large tablet */
+@media (max-width: 1024px) {
+  .hg-page      { padding: 20px 20px 48px; }
+  .hg-title     { font-size: 26px; }
+  .groups-grid  { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Tablet / mobile */
+@media (max-width: 768px) {
+  .hg-page      { padding: 16px 16px 40px; }
+  .hg-title     { font-size: 24px; }
+  .hg-sub       { font-size: 14px; }
+
+  /* Location tabs scroll horizontally */
+  .location-tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .loc-tab       { white-space: nowrap; flex-shrink: 0; }
+
+  /* AQI banner stacks */
+  .aqi-banner       { flex-direction: column; gap: 16px; padding: 20px; }
+  .banner-aqi       { font-size: 50px; }
+  .banner-right     { min-width: unset; }
+
+  /* Groups — 2 columns */
+  .groups-grid      { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .group-icon       { font-size: 28px; }
+
+  /* AI advice */
+  .ai-advice-card   { padding: 20px; }
+  .ai-para          { font-size: 14px; }
+
+  /* AQI scale table — make it scrollable */
+  .scale-card       { overflow-x: auto; padding: 0; }
+  .scale-table      { min-width: 520px; }
+  .scale-table th,
+  .scale-table td   { padding: 12px 12px; font-size: 13px; }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .hg-title     { font-size: 22px; }
+  .banner-aqi   { font-size: 42px; }
+  .groups-grid  { grid-template-columns: 1fr; }
+  .group-card   { padding: 18px 16px; }
+  .ai-advice-card { padding: 16px; }
+}
+
+/* ─── actual class definitions follow ─── */
+.hg-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+/* ── Header ── */
+.hg-header { margin-bottom: 28px; }
+
+.hg-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a3a5c;
+  margin-bottom: 8px;
+}
+
+.hg-sub {
+  font-size: 15px;
+  color: #4a6fa5;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.location-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.loc-tab {
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a6fa5;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.loc-tab:hover {
+  background: rgba(79, 195, 247, 0.12);
+  color: #1a8fc0;
+}
+
+.loc-tab.active {
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.25), rgba(102, 187, 106, 0.20));
+  border-color: rgba(79, 195, 247, 0.5);
+  color: #1a8fc0;
+}
+
+/* ── AQI Banner ── */
+.aqi-banner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 28px 32px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+.banner-left { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+.banner-location {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6a8faf;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.banner-aqi {
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -2px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.banner-unit {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4a6fa5 !important;
+}
+
+.banner-cat {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.banner-right {
+  flex: 1;
+  min-width: 200px;
+}
+
+.banner-msg {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #2c4a6a;
+}
+
+/* ── Section headings ── */
+.section-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a3a5c;
+  margin: 32px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-heading::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 22px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #4fc3f7, #66bb6a);
+}
+
+/* ── Group cards ── */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.group-card {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  transition: transform 0.2s;
+}
+
+.group-card:hover { transform: translateY(-4px); }
+
+.group-icon { font-size: 36px; }
+
+.group-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a3a5c;
+}
+
+.group-advice {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #4a6fa5;
+}
+
+/* ── AI advice ── */
+.ai-advice-card {
+  padding: 28px 32px;
+  margin-bottom: 8px;
+}
+
+.advice-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #4a6fa5;
+  font-size: 14px;
+}
+
+.ai-sections { display: flex; flex-direction: column; gap: 16px; }
+
+.ai-para {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #2c4a6a;
+}
+
+/* ── AQI Scale Table ── */
+.scale-card {
+  padding: 8px;
+  overflow-x: auto;
+}
+
+.scale-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.scale-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a8faf;
+  border-bottom: 1px solid rgba(255,255,255,0.35);
+}
+
+.scale-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
+  vertical-align: middle;
+}
+
+.scale-table tr:last-child td { border-bottom: none; }
+
+.scale-table tr:hover td { background: rgba(255,255,255,0.12); }
+
+.scale-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.scale-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scale-desc { color: #4a6fa5; line-height: 1.5; }

@@ -1,9 +1,14 @@
 import os
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
 
 _groq_client = None
+
+# Cache Groq responses for 10 minutes — health advice doesn't change minute-to-minute
+_llm_cache: dict = {"result": None, "aqi_bucket": None, "ts": 0.0}
+_LLM_CACHE_TTL = 600  # seconds
 
 
 def _get_client():
@@ -33,8 +38,20 @@ def get_recommendation(inference_result: dict) -> str:
     """
     Send current air quality readings to Groq LLM and return
     real-time health advice and protective actions.
+    Responses are cached for 10 minutes when AQI stays in the same 5-point bucket.
     """
     aqi       = inference_result["current_aqi"]
+    # Round to nearest 5 so minor AQI fluctuations reuse the cached response
+    aqi_bucket = round(aqi / 5) * 5
+    now = time.time()
+
+    if (
+        _llm_cache["result"]
+        and _llm_cache["aqi_bucket"] == aqi_bucket
+        and (now - _llm_cache["ts"]) < _LLM_CACHE_TTL
+    ):
+        return _llm_cache["result"]
+
     trend     = inference_result["trend_direction"]
     confidence = inference_result["trend_confidence"]
     forecast  = inference_result["forecast_6h"]
@@ -95,4 +112,10 @@ Provide your response in this exact structure:
         max_tokens=600,
     )
 
-    return response.choices[0].message.content
+    advice = response.choices[0].message.content
+
+    _llm_cache["result"] = advice
+    _llm_cache["aqi_bucket"] = aqi_bucket
+    _llm_cache["ts"] = time.time()
+
+    return advice
