@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import ardhiLogo from '../../assets/ardhi_logo.png'
 import './Login.css'
 
 export default function Login() {
@@ -34,7 +35,7 @@ export default function Login() {
       <div className="glass-card login-card">
         {/* Logo mark */}
         <div className="login-logo">
-          <span className="login-logo-icon">🌿</span>
+          <img src={ardhiLogo} alt="Ardhi University" className="login-logo-icon" />
           <span className="login-logo-text">AQI Monitor</span>
         </div>
 

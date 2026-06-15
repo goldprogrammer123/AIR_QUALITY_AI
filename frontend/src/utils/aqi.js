@@ -27,20 +27,20 @@ export const AQI_SCALE = [
   { range: '301 – 500', label: 'Hazardous',                  color: '#641e16', bg: '#f9ebea', description: 'Health warning of emergency conditions. Everyone is more likely to be affected.' },
 ]
 
-/* Two physical sensor nodes installed in Dar es Salaam */
+/* Two physical sensor nodes installed at Ardhi University, Dar es Salaam */
 export const SENSOR_NODES = [
   {
     id: 'land-building',
     name: 'Land Building',
-    description: 'Ministry of Lands, Housing & Human Settlements',
-    lat: -6.8057,
-    lng: 39.2894,
+    description: 'Ardhi University — School of Land Science & Technology',
+    lat: -6.7649315,
+    lng: 39.2125439,
   },
   {
     id: 'planning-building',
     name: 'Planning Building',
-    description: 'Urban Planning & Environment Office',
-    lat: -6.7961,
-    lng: 39.2091,
+    description: 'Ardhi University — School of Urban & Regional Planning',
+    lat: -6.7643202,
+    lng: 39.2118556,
   },
 ]

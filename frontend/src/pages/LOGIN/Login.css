@@ -48,7 +48,13 @@
   margin-bottom: 28px;
 }
 
-.login-logo-icon { font-size: 26px; }
+.login-logo-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 50%;
+  filter: drop-shadow(0 2px 8px rgba(31,78,135,0.18));
+}
 
 .login-logo-text {
   font-size: 20px;

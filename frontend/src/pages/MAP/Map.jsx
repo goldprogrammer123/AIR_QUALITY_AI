@@ -4,8 +4,8 @@ import { fetchAll } from '../../services/api'
 import { getAQIColor, getAQICategory, SENSOR_NODES, AQI_SCALE } from '../../utils/aqi'
 import './Map.css'
 
-/* Dar es Salaam city centre */
-const DAR_CENTER = [-6.7924, 39.2083]
+/* Midpoint between Land Building and Planning Building, Ardhi University */
+const DAR_CENTER = [-6.7646, 39.2122]
 
 export default function MapPage() {
   const [predictions, setPredictions] = useState(null)
@@ -47,8 +47,8 @@ export default function MapPage() {
         <div className="map-header-inner">
           <h1 className="map-title">Sensor Map</h1>
           <p className="map-sub">
-            Live AQI readings from sensor nodes across Dar es Salaam.
-            Click a node for details.
+            General air quality index for Dar es Salaam. Sensor nodes show their
+            installation locations. Click a node for details.
           </p>
         </div>
 
@@ -69,7 +69,7 @@ export default function MapPage() {
       <div className="map-container-wrap">
         <MapContainer
           center={DAR_CENTER}
-          zoom={13}
+          zoom={17}
           className="leaflet-map"
           scrollWheelZoom
         >

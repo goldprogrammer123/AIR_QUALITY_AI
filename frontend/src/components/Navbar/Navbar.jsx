@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import ardhiLogo from '../../assets/ardhi_logo.png'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -21,7 +22,7 @@ export default function Navbar() {
       <div className="nav-inner">
         {/* Logo */}
         <NavLink to="/" className="nav-logo" onClick={close}>
-          <span className="logo-icon">🌿</span>
+          <img src={ardhiLogo} alt="Ardhi University" className="logo-icon" />
           <span className="logo-text">
             <span className="logo-air">Air</span>Quality
             <span className="logo-ai"> AI</span>

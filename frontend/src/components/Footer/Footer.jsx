@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import ardhiLogo from '../../assets/ardhi_logo.png'
 import './Footer.css'
 
 export default function Footer() {
@@ -9,7 +10,7 @@ export default function Footer() {
         {/* Brand column */}
         <div className="footer-col footer-brand">
           <div className="footer-logo">
-            <span className="footer-logo-icon">🌿</span>
+            <img src={ardhiLogo} alt="Ardhi University" className="footer-logo-icon" />
             <span>
               <span className="logo-air">Air</span>Quality
               <span className="logo-ai"> AI</span>
@@ -53,22 +54,23 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Tech stack column */}
+        {/* Contact column */}
         <div className="footer-col">
-          <h4 className="footer-heading">Powered By</h4>
+          <h4 className="footer-heading">Contact Us</h4>
           <ul className="footer-tech">
-            <li>🧠 LSTM · RandomForest</li>
-            <li>⚡ FastAPI backend</li>
-            <li>🤖 Groq LLM (llama-3.3-70b)</li>
-            <li>🗺️ InfluxDB time-series</li>
-            <li>⚛️ React + Vite</li>
+            <li>📞 0767 598 691</li>
+            <li>
+              <a href="https://csm.aru.ac.tz/" target="_blank" rel="noreferrer" className="footer-link">
+                csm.aru.ac.tz
+              </a>
+            </li>
           </ul>
         </div>
 
       </div>
 
       <div className="footer-bottom">
-        <p>Built with ❤️ for cleaner air in Tanzania</p>
+        <p>© {new Date().getFullYear()} Ardhi University · Dar es Salaam, Tanzania</p>
       </div>
     </footer>
   )
