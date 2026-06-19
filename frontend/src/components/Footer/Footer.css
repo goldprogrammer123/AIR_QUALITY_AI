@@ -1,17 +1,18 @@
+/* Footer links use the deeper ocean blue accent */
 .footer-link {
-  color: #4fc3f7;
+  color: #0288d1;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
 }
 
-.footer-link:hover { color: #29b6f6; text-decoration: underline; }
+.footer-link:hover { color: #0277bd; text-decoration: underline; }
 
 .footer {
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.30);
+  border-top: 1px solid rgba(180, 215, 245, 0.40);
   margin-top: 60px;
 }
 
@@ -43,8 +44,10 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-.logo-air         { color: #4fc3f7; }
-.logo-ai          { color: #66bb6a; }
+
+/* Match navbar brand colors */
+.logo-air { color: #0288d1; }
+.logo-ai  { color: #2e7d32; }
 
 .footer-tagline {
   font-size: 13px;
@@ -85,7 +88,7 @@
   transition: color 0.2s;
 }
 
-.footer-links a:hover { color: #4fc3f7; }
+.footer-links a:hover { color: #0288d1; }
 
 /* ── Sensor nodes ── */
 .footer-node {
@@ -113,7 +116,7 @@
 .footer-node strong { display: block; font-size: 13px; color: #1a3a5c; font-weight: 600; }
 .footer-node small  { display: block; font-size: 11px; color: #8aafcc; margin-top: 2px; }
 
-/* ── Tech stack ── */
+/* ── Tech stack / contact ── */
 .footer-tech {
   list-style: none;
   display: flex;
@@ -143,24 +146,20 @@
    RESPONSIVE
    ══════════════════════ */
 
-/* Tablet */
 @media (max-width: 1024px) {
   .footer-inner {
     grid-template-columns: 1fr 1fr;
     gap: 32px;
   }
-
   .footer-brand { grid-column: 1 / -1; }
   .footer-tagline { max-width: 100%; }
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .footer-inner {
     grid-template-columns: 1fr;
     padding: 36px 20px 24px;
     gap: 28px;
   }
-
   .footer-brand { grid-column: unset; }
 }

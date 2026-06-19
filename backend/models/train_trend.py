@@ -82,8 +82,7 @@ precision = precision_score(y_test, preds, zero_division=0)
 recall = recall_score(y_test, preds, zero_division=0)
 f1 = f1_score(y_test, preds, zero_division=0)
 
-print("\nTREND RESULTS")
-print("Accuracy:", accuracy)
+print(f"Trend — accuracy={accuracy:.4f}  precision={precision:.4f}  recall={recall:.4f}  f1={f1:.4f}  dataset={len(df)}")
 
 # ======================
 # SAVE HISTORY

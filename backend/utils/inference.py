@@ -168,18 +168,22 @@ def run_inference() -> dict:
     rising      = bool(trend_proba[1] >= 0.5)
     confidence  = float(trend_proba[1] if rising else trend_proba[0])
 
-    # LSTM — 6-hour AQI forecast
-    # Use the feature list stored alongside the scaler to match training exactly
-    lstm_cols      = [f for f in _LSTM_FEATURES if f in df.columns]
-    window         = df[lstm_cols].iloc[-LOOK_BACK:].values.astype(float)
-    window_scaled  = models["feat_scaler"].transform(window)
-    X              = window_scaled.reshape(1, LOOK_BACK, len(lstm_cols))
-    forecast_scaled = models["lstm"].predict(X, verbose=0)
-    forecast = (
-        models["tgt_scaler"]
-        .inverse_transform(forecast_scaled.reshape(-1, 1))
-        .flatten()
-        .tolist()
+    # LSTM — multi-target forecast (AQI always; PM2.5 added in Phase 2)
+    lstm_cols       = [f for f in _LSTM_FEATURES if f in df.columns]
+    window          = df[lstm_cols].iloc[-LOOK_BACK:].values.astype(float)
+    window_scaled   = models["feat_scaler"].transform(window)
+    X               = window_scaled.reshape(1, LOOK_BACK, len(lstm_cols))
+    forecast_scaled = models["lstm"].predict(X, verbose=0)          # (1, HORIZON, n_targets)
+
+    n_targets = models["tgt_scaler"].n_features_in_
+    forecast_inv = models["tgt_scaler"].inverse_transform(
+        forecast_scaled.reshape(-1, n_targets)
+    )                                                                 # (HORIZON, n_targets)
+
+    forecast_aqi  = [round(float(v), 2) for v in forecast_inv[:, 0]]
+    forecast_pm25 = (
+        [round(float(v), 2) for v in forecast_inv[:, 1]]
+        if n_targets >= 2 else None
     )
 
     # Current pollutant levels from the latest row
@@ -200,12 +204,13 @@ def run_inference() -> dict:
     }
 
     result = {
-        "current_aqi":      round(aqi_pred, 2),
-        "trend_direction":  "rising" if rising else "falling",
-        "trend_confidence": round(confidence * 100, 1),
-        "forecast_6h":      [round(v, 2) for v in forecast],
-        "pollutants":       pollutants,
-        "timestamp":        datetime.now(timezone.utc).isoformat(),
+        "current_aqi":        round(aqi_pred, 2),
+        "trend_direction":    "rising" if rising else "falling",
+        "trend_confidence":   round(confidence * 100, 1),
+        "forecast_6h":        forecast_aqi,
+        "pm25_forecast_6h":   forecast_pm25,   # None until Phase 2 model is trained
+        "pollutants":         pollutants,
+        "timestamp":          datetime.now(timezone.utc).isoformat(),
     }
 
     # Store in cache with current timestamp

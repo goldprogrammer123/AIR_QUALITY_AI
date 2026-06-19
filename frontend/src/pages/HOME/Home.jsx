@@ -63,7 +63,7 @@ export default function Home() {
   if (loading)       return <LoadingScreen />
   if (error)         return <ErrorScreen message={error} />
 
-  const { current_aqi, trend_direction, trend_confidence, forecast_6h, pollutants } = predictions
+  const { current_aqi, trend_direction, trend_confidence, forecast_6h, pm25_forecast_6h, pollutants } = predictions
   const aqiColor    = getAQIColor(current_aqi)
   const aqiCategory = getAQICategory(current_aqi)
 
@@ -72,6 +72,13 @@ export default function Home() {
     { hour: 'Now', aqi: Math.round(current_aqi) },
     ...forecast_6h.map((v, i) => ({ hour: `+${i + 1}h`, aqi: Math.round(v) })),
   ]
+
+  const pm25ForecastData = pm25_forecast_6h
+    ? [
+        { hour: 'Now', pm25: pollutants.pm25 },
+        ...pm25_forecast_6h.map((v, i) => ({ hour: `+${i + 1}h`, pm25: Math.round(v * 10) / 10 })),
+      ]
+    : null
 
   return (
     <div className="home">
@@ -237,6 +244,49 @@ export default function Home() {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {/* ── PM2.5 FORECAST (Phase 2 — shown when model supports it) ── */}
+      {pm25ForecastData && (
+        <div className="glass-card forecast-card">
+          <div className="card-title">6-Hour PM2.5 Forecast <span style={{ fontSize: 12, color: '#66bb6a', fontWeight: 600 }}>NEW</span></div>
+          <ResponsiveContainer width="100%" height={130}>
+            <AreaChart data={pm25ForecastData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="pm25-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#e74c3c" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#e74c3c" stopOpacity={0.03} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="pm25"
+                stroke="#e74c3c"
+                fill="url(#pm25-grad)"
+                strokeWidth={2.5}
+                dot={{ r: 5, fill: '#e74c3c', stroke: '#fff', strokeWidth: 2 }}
+                activeDot={{ r: 7 }}
+              />
+              <XAxis
+                dataKey="hour"
+                tick={{ fontSize: 12, fill: '#4a6fa5', fontWeight: 500 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: 'rgba(255,255,255,0.85)',
+                  border: '1px solid rgba(255,255,255,0.5)',
+                  borderRadius: 12,
+                  backdropFilter: 'blur(10px)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+                formatter={(v) => [`${v} µg/m³`, 'PM2.5']}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* ── SENSOR NODES STRIP ── */}
       <div className="nodes-strip">

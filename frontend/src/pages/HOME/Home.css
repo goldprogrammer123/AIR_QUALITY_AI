@@ -14,11 +14,12 @@
 
 .hero-content { max-width: 680px; margin: 0 auto; }
 
+/* Deeper blue badge — more readable against the richer background */
 .hero-badge {
   display: inline-block;
-  background: rgba(79, 195, 247, 0.15);
-  color: #1a8fc0;
-  border: 1px solid rgba(79, 195, 247, 0.3);
+  background: rgba(2, 136, 209, 0.12);
+  color: #0277bd;
+  border: 1px solid rgba(2, 136, 209, 0.28);
   border-radius: 50px;
   padding: 6px 18px;
   font-size: 13px;
@@ -36,8 +37,9 @@
   letter-spacing: -0.5px;
 }
 
+/* Rich ocean → forest gradient — replaces the pale sky→mint */
 .hero-accent {
-  background: linear-gradient(90deg, #4fc3f7, #66bb6a);
+  background: linear-gradient(90deg, #0288d1, #2e7d32);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -56,19 +58,19 @@
 .search-bar {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.30);
+  background: rgba(255, 255, 255, 0.32);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1.5px solid rgba(255, 255, 255, 0.55);
   border-radius: 50px;
   padding: 0 16px;
-  box-shadow: 0 4px 24px rgba(31, 78, 135, 0.10);
+  box-shadow: 0 4px 24px rgba(13, 71, 161, 0.10);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .search-bar:focus-within {
-  border-color: rgba(79, 195, 247, 0.6);
-  box-shadow: 0 4px 24px rgba(79, 195, 247, 0.20);
+  border-color: rgba(2, 136, 209, 0.55);
+  box-shadow: 0 4px 24px rgba(2, 136, 209, 0.18);
 }
 
 .search-icon { font-size: 18px; margin-right: 8px; }
@@ -99,12 +101,12 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 0; right: 0;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 16px;
   list-style: none;
-  box-shadow: 0 8px 32px rgba(31, 78, 135, 0.12);
+  box-shadow: 0 8px 32px rgba(13, 71, 161, 0.12);
   overflow: hidden;
   z-index: 10;
 }
@@ -118,7 +120,7 @@
   transition: background 0.15s;
 }
 
-.search-dropdown li:hover { background: rgba(79, 195, 247, 0.10); }
+.search-dropdown li:hover { background: rgba(2, 136, 209, 0.08); }
 
 .sug-icon { font-size: 20px; }
 
@@ -145,47 +147,37 @@
    RESPONSIVE — Home page
    ══════════════════════════════════ */
 
-/* Large tablet */
 @media (max-width: 1024px) {
   .home { padding: 20px 20px 48px; }
   .home-grid { grid-template-columns: 1fr 1.2fr; gap: 16px; }
 }
 
-/* Tablet / mobile */
 @media (max-width: 768px) {
   .home { padding: 16px 16px 40px; }
 
-  /* Hero */
   .hero        { padding: 36px 0 28px; }
   .hero-title  { font-size: clamp(26px, 7vw, 40px); }
   .hero-sub    { font-size: 14px; }
   .hero-badge  { font-size: 12px; padding: 5px 14px; }
 
-  /* Search */
   .search-bar  { padding: 0 12px; }
   .search-input { font-size: 14px; padding: 14px 0; }
 
-  /* Card grid → single column */
   .home-grid   { grid-template-columns: 1fr; gap: 14px; margin-bottom: 14px; }
 
-  /* AQI card — compact */
   .aqi-card    { padding: 22px 18px; }
   .aqi-circle  { width: 155px; height: 155px; }
   .aqi-number  { font-size: 48px; }
 
-  /* Recommendation card */
   .rec-card    { padding: 22px 20px; }
   .advice-text { font-size: 14px; }
 
-  /* Forecast */
   .forecast-card { padding: 18px 14px 10px; }
 
-  /* Nodes strip */
   .nodes-strip { grid-template-columns: 1fr; }
   .node-card   { padding: 14px 16px; }
 }
 
-/* Small phones */
 @media (max-width: 480px) {
   .hero-title   { font-size: 26px; }
   .aqi-circle   { width: 140px; height: 140px; }
@@ -212,7 +204,7 @@
   height: 180px;
   border-radius: 50%;
   border: 5px solid;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
@@ -254,12 +246,12 @@
   font-weight: 600;
   padding: 7px 18px;
   border-radius: 50px;
-  background: rgba(255, 255, 255, 0.20);
-  border: 1px solid rgba(255, 255, 255, 0.40);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.42);
 }
 
 .trend-pill.rising  { color: #e74c3c; }
-.trend-pill.falling { color: #27ae60; }
+.trend-pill.falling { color: #2e7d32; }
 
 .chip-row {
   display: flex;
@@ -272,8 +264,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.40);
+  background: rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 14px;
   padding: 8px 14px;
   min-width: 72px;
@@ -330,11 +322,11 @@
 .rec-link {
   font-size: 13px;
   font-weight: 600;
-  color: #1a8fc0;
+  color: #0277bd;
   text-decoration: none;
   transition: color 0.2s;
 }
-.rec-link:hover { color: #4fc3f7; }
+.rec-link:hover { color: #0288d1; }
 
 /* ══════════════════════
    FORECAST CARD

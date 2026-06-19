@@ -65,6 +65,12 @@ export const fetchRecommendation = () =>
 export const fetchHistory = () =>
   _cached('history', 5 * 60 * 1000, () => API.get('/history/metrics'))
 
+/* Sensor history — hours: 24 | 168 | 336 | 720. Cached per period (5 min). */
+export const fetchSensorHistory = (hours = 24) =>
+  _cached(`sensor_history_${hours}`, 5 * 60 * 1000, () =>
+    API.get(`/history/sensor?hours=${hours}`)
+  )
+
 /* Individual model endpoints (used only when explicitly requested) */
 export const fetchCurrent  = () => API.get('/predict/current')
 export const fetchTrend    = () => API.get('/predict/trend')
@@ -72,7 +78,7 @@ export const fetchForecast = () => API.get('/predict/forecast')
 
 /* Force-clear all cached data and re-fetch (used by Dashboard refresh button) */
 export const clearCache = () => {
-  ['predict_all', 'recommend', 'history'].forEach(k =>
-    sessionStorage.removeItem(`aq_cache_${k}`)
-  )
+  ['predict_all', 'recommend', 'history',
+   'sensor_history_24', 'sensor_history_168', 'sensor_history_336', 'sensor_history_720'
+  ].forEach(k => sessionStorage.removeItem(`aq_cache_${k}`))
 }

@@ -23,8 +23,8 @@ MODEL_PATH = BASE_DIR / "models_saved" / "aqi_lstm_forecast.keras"
 # ======================
 _, _, df = build_features()
 
-# Phase 1: AQI only. Add pm25 once R2 > 0.5, then all targets at Phase 3.
-TARGET_COLS = [c for c in ["aqi"] if c in df.columns]
+# Phase 2: R2 crossed 0.5 — AQI + PM2.5. Add remaining pollutants at Phase 3 (R2 > 0.7).
+TARGET_COLS = [c for c in ["aqi", "pm25"] if c in df.columns]
 
 FEATURE_COLS = [
     "co2", "humidity", "pressure", "temperature",
@@ -74,29 +74,31 @@ model = Sequential([
 ])
 
 model.compile(optimizer=Adam(learning_rate=0.0005), loss="huber", metrics=["mae"])
-model.summary()
 
 # ======================
 # TRAIN
 # ======================
 callbacks = [
-    EarlyStopping(monitor="val_loss", patience=15, restore_best_weights=True, verbose=1),
-    ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=5, verbose=1),
+    EarlyStopping(monitor="val_loss", patience=15, restore_best_weights=True, verbose=0),
+    ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=5, verbose=0),
 ]
 
-model.fit(
+history_fit = model.fit(
     X_train, y_train,
     epochs=100,
     batch_size=32,
     validation_split=0.1,
     callbacks=callbacks,
-    verbose=1,
+    verbose=0,
 )
+epochs_run = len(history_fit.history["loss"])
+best_val   = min(history_fit.history["val_loss"])
+print(f"Training complete — {epochs_run} epochs, best val_loss: {best_val:.5f}")
 
 # ======================
 # EVALUATE
 # ======================
-preds_scaled = model.predict(X_test)
+preds_scaled = model.predict(X_test, verbose=0)
 
 # Flatten (samples * horizon, n_targets) for metric computation
 preds = tgt_scaler.inverse_transform(preds_scaled.reshape(-1, n_targets))

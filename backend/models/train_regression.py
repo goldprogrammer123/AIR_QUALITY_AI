@@ -86,43 +86,18 @@ print("Model trained successfully!")
 #     )
 # )
 
-importance = pd.DataFrame({
-    "feature": X.columns,
-    "importance": model.feature_importances_
-})
-
-print("\nFeature Importance")
-print(
-    importance.sort_values(
-        by="importance",
-        ascending=False
-    )
-)
-
 # --------------------------------
-# PREDICTIONS
+# PREDICTIONS + EVALUATION
 # --------------------------------
 
 preds = model.predict(X_test)
 
-print("\nSample Predictions")
-print("Predicted:", preds[:10])
-print("Actual   :", y_test.iloc[:10].values)
-
-# --------------------------------
-# EVALUATION
-# --------------------------------
-
-mae = mean_absolute_error(y_test, preds)
-mse = mean_squared_error(y_test, preds)
+mae  = mean_absolute_error(y_test, preds)
+mse  = mean_squared_error(y_test, preds)
 rmse = np.sqrt(mse)
-r2 = r2_score(y_test, preds)
+r2   = r2_score(y_test, preds)
 
-print("\nMODEL EVALUATION")
-print("MAE  =", round(mae, 3))
-print("MSE  =", round(mse, 3))
-print("RMSE =", round(rmse, 3))
-print("R2   =", round(r2, 3))
+print(f"Regression — MAE={mae:.3f}  RMSE={rmse:.3f}  R2={r2:.3f}  dataset={len(df)}")
 
 # save metrics after evaluation
 
@@ -142,10 +117,6 @@ save_metrics(
 MODEL_PATH = BASE_DIR / "models_saved" / "aqi_regression.pkl"
 
 backup_model(MODEL_PATH, model_name="regression")
-
-joblib.dump(model, MODEL_PATH)
-
-# save new model 
 joblib.dump(model, MODEL_PATH)
 print("Regression model saved")
 
