@@ -1,0 +1,27 @@
+# Python
+myvenv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Data cache (mounted as a volume at runtime)
+data/cache/
+
+# Large log / history files that change every run
+model_history/retrain.log
+
+# Model backups (keep only the active models in models_saved/)
+model_history/backups/
+
+# Development / test files
+test.py
+list_fields.py
+list_measurements.py
+data_pipeline.py
+
+# Git / IDE
+.git/
+.gitignore
+*.md

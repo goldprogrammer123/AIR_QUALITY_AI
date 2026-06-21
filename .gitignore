@@ -12,3 +12,12 @@ frontend/dist/
 frontend/.vite/
 frontend/coverage/
 
+# Backend — large runtime-generated files (keep training_history.json)
+backend/model_history/retrain.log
+backend/model_history/backups/
+backend/__pycache__/
+backend/**/__pycache__/
+
+# Docker runtime volumes (created on the server, not committed)
+data_cache/
+

@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+
+  # ── FastAPI backend ─────────────────────────────────────────────────────
+  backend:
+    image: goldprogrammer123/airquality-backend:latest
+    container_name: aq_backend
+    restart: unless-stopped
+
+    # Secrets come from .env on the Oracle server (not committed to git)
+    env_file: .env
+
+    volumes:
+      # Persist training history and logs between container restarts.
+      # Mount from backend/ so training_history.json survives redeploys.
+      - ./backend/model_history:/app/model_history
+      # Persist the raw data cache
+      - ./data_cache:/app/data/cache
+
+    ports:
+      - "8000:8000"     # Remove this line to keep backend internal-only
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── React frontend (nginx) ──────────────────────────────────────────────
+  frontend:
+    image: goldprogrammer123/airquality-frontend:latest
+    container_name: aq_frontend
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+networks:
+  default:
+    name: aq_network
