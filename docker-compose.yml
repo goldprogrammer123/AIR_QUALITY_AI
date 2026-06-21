@@ -12,14 +12,11 @@ services:
     env_file: .env
 
     volumes:
-      # Persist training history and logs between container restarts.
-      # Mount from backend/ so training_history.json survives redeploys.
       - ./backend/model_history:/app/model_history
-      # Persist the raw data cache
       - ./data_cache:/app/data/cache
 
-    ports:
-      - "8000:8000"     # Remove this line to keep backend internal-only
+    # No host port — backend is only reachable from inside the Docker network.
+    # The frontend nginx container proxies /api/* to it on backend:8000.
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -34,8 +31,10 @@ services:
     container_name: aq_frontend
     restart: unless-stopped
 
+    # Bind to localhost only — host nginx will proxy to this port over SSL.
+    # The container is NOT directly reachable from the internet.
     ports:
-      - "80:80"
+      - "127.0.0.1:3000:80"
 
     depends_on:
       backend:
