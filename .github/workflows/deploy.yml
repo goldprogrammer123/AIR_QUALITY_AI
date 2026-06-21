@@ -62,24 +62,25 @@ jobs:
 
     steps:
       - name: Deploy to Oracle Cloud
-        uses: appleboy/ssh-action@v1
-        with:
-          host:     ${{ secrets.ORACLE_HOST }}
-          username: ${{ secrets.ORACLE_USER }}
-          key:      ${{ secrets.ORACLE_SSH_KEY }}
-          script: |
+        env:
+          SSH_KEY:  ${{ secrets.ORACLE_SSH_KEY }}
+          HOST:     ${{ secrets.ORACLE_HOST }}
+          SSH_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          # Write the private key to a temp file
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Trust the host without an interactive prompt
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+
+          # Run deploy commands on the server
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$HOST" bash << 'ENDSSH'
             set -e
-
-            # Go to the project folder on the server
             cd ~/air_quality_ai
-
-            # Pull latest images
             docker compose pull
-
-            # Restart — zero downtime: new containers start before old ones stop
             docker compose up -d --remove-orphans
-
-            # Remove dangling images to keep disk clean
             docker image prune -f
-
-            echo "Deployment complete ✓"
+            echo "Deployment complete"
+          ENDSSH
