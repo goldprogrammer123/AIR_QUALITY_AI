@@ -61,17 +61,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Oracle Cloud
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Write SSH key
         env:
-          SSH_KEY:  ${{ secrets.ORACLE_SSH_KEY }}
-          HOST:     ${{ secrets.ORACLE_HOST }}
-          SSH_USER: ${{ secrets.ORACLE_USER }}
+          SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh -i ~/.ssh/deploy_key \
-              -o StrictHostKeyChecking=no \
-              -o BatchMode=yes \
-              "$SSH_USER@$HOST" \
-              "cd ~/air_quality_ai && docker compose pull && docker compose up -d --remove-orphans && docker image prune -f && echo 'Deployment complete'"
+
+      - name: Copy docker-compose.yml to server
+        env:
+          HOST:     ${{ secrets.ORACLE_HOST }}
+          SSH_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$SSH_USER@$HOST" \
+            "mkdir -p ~/air_quality_ai"
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            docker-compose.yml "$SSH_USER@$HOST:~/air_quality_ai/docker-compose.yml"
+
+      - name: Pull images and restart containers
+        env:
+          HOST:     ${{ secrets.ORACLE_HOST }}
+          SSH_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$SSH_USER@$HOST" \
+            "cd ~/air_quality_ai && docker compose pull && docker compose up -d --remove-orphans && docker image prune -f && echo 'Deployment complete'"
