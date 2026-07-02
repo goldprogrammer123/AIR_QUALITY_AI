@@ -23,24 +23,26 @@ class TrendPrediction(BaseModel):
 
 
 class ForecastPrediction(BaseModel):
-    forecast_6h: list[float]   # 6 hourly AQI values
-    timestamp:   str
+    forecast_6h: list[float]   # 24 hourly AQI values (1 day)
+    timestamp:    str
 
 
 class AllPredictions(BaseModel):
-    current_aqi:      float
-    trend_direction:  str
-    trend_confidence: float
-    forecast_6h:      list[float]
-    pollutants:       PollutantLevels
-    timestamp:        str
+    current_aqi:        float
+    trend_direction:    str
+    trend_confidence:   float
+    forecast_6h:       list[float]           # 24-hour AQI forecast
+    pm25_forecast_6h:  Optional[list[float]]  # 24-hour PM2.5 forecast
+    pm10_forecast_6h:  Optional[list[float]]  # 24-hour PM10 forecast
+    pollutants:         PollutantLevels
+    timestamp:          str
 
 
 class RecommendationResponse(BaseModel):
-    advice:      str
-    aqi:         float
+    advice:       str
+    aqi:          float
     aqi_category: str
-    timestamp:   str
+    timestamp:    str
 
 
 class HealthResponse(BaseModel):

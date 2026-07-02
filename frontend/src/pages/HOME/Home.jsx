@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { fetchAll, fetchRecommendation } from '../../services/api'
-import { getAQIColor, getAQICategory, SENSOR_NODES } from '../../utils/aqi'
+import { getAQIColor, getAQICategory, AQI_SCALE, SENSOR_NODES } from '../../utils/aqi'
 import './Home.css'
 
 export default function Home() {
@@ -67,18 +67,13 @@ export default function Home() {
   const aqiColor    = getAQIColor(current_aqi)
   const aqiCategory = getAQICategory(current_aqi)
 
-  /* Build forecast chart data — "Now" + next 6 hours */
-  const forecastData = [
-    { hour: 'Now', aqi: Math.round(current_aqi) },
-    ...forecast_6h.map((v, i) => ({ hour: `+${i + 1}h`, aqi: Math.round(v) })),
-  ]
+  const toHourly = (arr, key) => {
+    if (!arr) return null
+    return arr.map((v, i) => ({ hour: `+${i + 1}h`, [key]: v }))
+  }
 
-  const pm25ForecastData = pm25_forecast_6h
-    ? [
-        { hour: 'Now', pm25: pollutants.pm25 },
-        ...pm25_forecast_6h.map((v, i) => ({ hour: `+${i + 1}h`, pm25: Math.round(v * 10) / 10 })),
-      ]
-    : null
+  const forecastData     = toHourly(forecast_6h,      'aqi')  ?? []
+  const pm25ForecastData = toHourly(pm25_forecast_6h, 'pm25')
 
   return (
     <div className="home">
@@ -204,7 +199,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── FORECAST STRIP ── */}
+      {/* ── AQI EXPLAINER ── */}
+      <AqiExplainer currentAqi={current_aqi} />
+
+      {/* ── 24-HOUR AQI FORECAST STRIP ── */}
       <div className="glass-card forecast-card">
         <div className="card-title">6-Hour AQI Forecast</div>
         <ResponsiveContainer width="100%" height={130}>
@@ -245,10 +243,10 @@ export default function Home() {
         </ResponsiveContainer>
       </div>
 
-      {/* ── PM2.5 FORECAST (Phase 2 — shown when model supports it) ── */}
+      {/* ── 24-HOUR PM2.5 FORECAST ── */}
       {pm25ForecastData && (
         <div className="glass-card forecast-card">
-          <div className="card-title">6-Hour PM2.5 Forecast <span style={{ fontSize: 12, color: '#66bb6a', fontWeight: 600 }}>NEW</span></div>
+          <div className="card-title">6-Hour PM2.5 Forecast (µg/m³)</div>
           <ResponsiveContainer width="100%" height={130}>
             <AreaChart data={pm25ForecastData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <defs>
@@ -308,6 +306,40 @@ export default function Home() {
       </div>
     </div>
   )
+}
+
+function AqiExplainer({ currentAqi }) {
+  return (
+    <div className="glass-card aqi-explainer">
+      <div className="explainer-header">
+        <div className="explainer-title">What is AQI?</div>
+        <p className="explainer-intro">
+          The <strong>Air Quality Index (AQI)</strong> is a number from 0 to 500 that tells you
+          how clean or polluted the air is and what health effects may be a concern.
+          The higher the number, the worse the air quality and the greater the health risk.
+        </p>
+      </div>
+      <div className="aqi-scale-strip">
+        {AQI_SCALE.map((band) => (
+          <div
+            key={band.label}
+            className={`scale-band ${currentAqi !== undefined && isInBand(currentAqi, band.range) ? 'scale-band--active' : ''}`}
+            style={{ borderTop: `4px solid ${band.color}`, background: band.bg }}
+          >
+            <span className="band-dot" style={{ background: band.color }} />
+            <span className="band-range">{band.range}</span>
+            <span className="band-label" style={{ color: band.color }}>{band.label}</span>
+            <span className="band-desc">{band.description}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function isInBand(aqi, range) {
+  const [lo, hi] = range.replace(/\s/g, '').split('–').map(Number)
+  return aqi >= lo && aqi <= hi
 }
 
 function Chip({ label, val, unit }) {

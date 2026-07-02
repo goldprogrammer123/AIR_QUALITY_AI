@@ -3,11 +3,9 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import joblib
 
-# Phase 1: 24-hour look-back, 6-hour horizon, AQI only.
-# Phase 2 (once R2 > 0.5): set LOOK_BACK=48, HORIZON=24, add pm25 target.
-# Phase 3 (6+ months data):  set LOOK_BACK=168, HORIZON=168, all targets.
+# Phase 3: 24h look-back, 6h horizon, targets = aqi + pm25 + pm10.
 LOOK_BACK = 24
-HORIZON = 6
+HORIZON   = 6
 
 FEAT_SCALER_PATH = Path(__file__).resolve().parent.parent / "models_saved" / "lstm_feat_scaler.pkl"
 TGT_SCALER_PATH = Path(__file__).resolve().parent.parent / "models_saved" / "lstm_tgt_scaler.pkl"

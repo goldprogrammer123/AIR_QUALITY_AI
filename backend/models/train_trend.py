@@ -5,7 +5,6 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import joblib
-import pandas as pd
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -24,16 +23,30 @@ _, _, df = build_features()
 df = df.sort_values("_time")
 
 # ======================
+# MOMENTUM FEATURES
+# ======================
+# Explicit direction-of-change features — far more predictive of future trend
+# than absolute AQI levels alone.
+df["aqi_delta1"] = df["aqi"] - df["aqi"].shift(1)   # 1h momentum
+df["aqi_delta3"] = df["aqi"] - df["aqi"].shift(3)   # 3h momentum
+df["aqi_delta6"] = df["aqi"] - df["aqi"].shift(6)   # 6h momentum
+
+# ======================
 # TARGET
 # ======================
+# Use a ±5 AQI deadband so we only train on unambiguous direction changes.
+# Tiny fluctuations (< 5 AQI) are noise — including them destroys recall.
+THRESHOLD = 5
 df["aqi_future"] = df["aqi"].shift(-1)
-df["trend"] = (df["aqi_future"] > df["aqi"]).astype(int)
+df["aqi_change"] = df["aqi_future"] - df["aqi"]
 
-df = df.dropna(subset=[
-    "aqi_future",
-    "aqi_lag1", "aqi_lag2", "aqi_lag3",
-    "trend"
-])
+df = df.dropna(subset=["aqi_future", "aqi_change",
+                        "aqi_lag1", "aqi_lag2", "aqi_lag3",
+                        "aqi_delta1", "aqi_delta3", "aqi_delta6"])
+
+# Keep only rows with a meaningful change; drop near-zero noise
+df = df[df["aqi_change"].abs() >= THRESHOLD].copy()
+df["trend"] = (df["aqi_change"] > 0).astype(int)
 
 # ======================
 # FEATURES
@@ -42,7 +55,9 @@ features = [
     "co2", "humidity", "pressure", "temperature",
     "hour", "day", "month",
     "aqi_lag1", "aqi_lag2", "aqi_lag3",
-    "co2_lag1", "pm25_lag1"
+    "aqi_delta1", "aqi_delta3", "aqi_delta6",
+    "co2_lag1", "pm25_lag1",
+    "aqi_roll3", "aqi_roll6",
 ]
 
 features = [f for f in features if f in df.columns]
@@ -64,7 +79,8 @@ model = RandomForestClassifier(
     n_estimators=300,
     max_depth=20,
     random_state=42,
-    n_jobs=-1
+    n_jobs=-1,
+    class_weight='balanced',
 )
 
 model.fit(X_train, y_train)

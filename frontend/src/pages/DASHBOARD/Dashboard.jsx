@@ -124,21 +124,23 @@ export default function Dashboard() {
     </div>
   )
 
-  const { current_aqi, trend_direction, trend_confidence, forecast_6h, pm25_forecast_6h, pollutants } = predictions
+  const {
+    current_aqi, trend_direction, trend_confidence,
+    forecast_6h, pm25_forecast_6h, pm10_forecast_6h,
+    pollutants,
+  } = predictions
   const aqiColor    = getAQIColor(current_aqi)
   const aqiCategory = getAQICategory(current_aqi)
 
-  const forecastData = [
-    { hour: 'Now', aqi: Math.round(current_aqi) },
-    ...forecast_6h.map((v, i) => ({ hour: `+${i + 1}h`, aqi: Math.round(v) })),
-  ]
+  /* Build hourly chart data from 24-value arrays */
+  const toHourly = (arr, key) => {
+    if (!arr) return null
+    return arr.map((v, i) => ({ hour: `+${i + 1}h`, [key]: v }))
+  }
 
-  const pm25ForecastData = pm25_forecast_6h
-    ? [
-        { hour: 'Now', pm25: pollutants.pm25 },
-        ...pm25_forecast_6h.map((v, i) => ({ hour: `+${i + 1}h`, pm25: Math.round(v * 10) / 10 })),
-      ]
-    : null
+  const forecastData     = toHourly(forecast_6h,     'aqi')  ?? []
+  const pm25ForecastData = toHourly(pm25_forecast_6h, 'pm25')
+  const pm10ForecastData = toHourly(pm10_forecast_6h, 'pm10')
 
   const pollutantData = [
     { name: 'PM2.5',    value: pollutants.pm25,        fill: '#e74c3c' },
@@ -356,7 +358,7 @@ export default function Dashboard() {
             {/* ════════ FORECAST ════════ */}
             {analyticsView === 'forecast' && (
               <>
-                {/* AQI Forecast */}
+                {/* AQI 7-Day Forecast */}
                 <div className="glass-card chart-card">
                   <div className="card-title">6-Hour AQI Forecast</div>
                   <ResponsiveContainer width="100%" height={280}>
@@ -378,14 +380,11 @@ export default function Dashboard() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* PM2.5 Forecast — shown once Phase 2 model is trained */}
-                {pm25ForecastData ? (
+                {/* PM2.5 7-Day Forecast */}
+                {pm25ForecastData && (
                   <div className="glass-card chart-card">
-                    <div className="card-title">
-                      6-Hour PM2.5 Forecast (µg/m³)
-                      <span className="phase-badge">Phase 2</span>
-                    </div>
-                    <ResponsiveContainer width="100%" height={260}>
+                    <div className="card-title">6-Hour PM2.5 Forecast (µg/m³)</div>
+                    <ResponsiveContainer width="100%" height={240}>
                       <AreaChart data={pm25ForecastData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                         <defs>
                           <linearGradient id="fc-pm25-grad" x1="0" y1="0" x2="0" y2="1">
@@ -403,13 +402,32 @@ export default function Dashboard() {
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
-                ) : (
-                  <div className="glass-card chart-card" style={{ textAlign: 'center', padding: '32px 24px' }}>
-                    <p style={{ color: '#6a8faf', fontSize: 14 }}>
-                      PM2.5 forecast will appear here once the Phase 2 model (AQI + PM2.5) is retrained.
-                    </p>
+                )}
+
+                {/* PM10 7-Day Forecast */}
+                {pm10ForecastData && (
+                  <div className="glass-card chart-card">
+                    <div className="card-title">6-Hour PM10 Forecast (µg/m³)</div>
+                    <ResponsiveContainer width="100%" height={240}>
+                      <AreaChart data={pm10ForecastData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="fc-pm10-grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%"  stopColor="#e67e22" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="#e67e22" stopOpacity={0.03} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
+                        <Area type="monotone" dataKey="pm10" stroke="#e67e22" fill="url(#fc-pm10-grad)"
+                          strokeWidth={2.5} dot={{ r: 6, fill: '#e67e22', stroke: '#fff', strokeWidth: 2 }}
+                          activeDot={{ r: 8 }} name="PM10 µg/m³" />
+                        <XAxis dataKey="hour" tick={{ fontSize: 13, fill: '#4a6fa5' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 12, fill: '#6a8faf' }} axisLine={false} tickLine={false} />
+                        <Tooltip content={<GlassTooltip />} />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
+
               </>
             )}
           </section>
@@ -461,13 +479,13 @@ export default function Dashboard() {
             </div>
 
             <div className="glass-card chart-card">
-              <div className="card-title">Hour-by-Hour Breakdown</div>
+              <div className="card-title">Day-by-Day AQI Breakdown</div>
               <div className="hour-grid">
                 {forecastData.map((d) => {
                   const c = getAQIColor(d.aqi)
                   return (
-                    <div key={d.hour} className="hour-chip" style={{ borderColor: c }}>
-                      <span className="hour-label">{d.hour}</span>
+                    <div key={d.day} className="hour-chip" style={{ borderColor: c }}>
+                      <span className="hour-label">{d.day}</span>
                       <span className="hour-aqi" style={{ color: c }}>{d.aqi}</span>
                       <span className="hour-cat" style={{ color: c }}>{getAQICategory(d.aqi)}</span>
                     </div>
@@ -475,32 +493,6 @@ export default function Dashboard() {
                 })}
               </div>
             </div>
-
-            {pm25ForecastData && (
-              <div className="glass-card chart-card">
-                <div className="card-title">
-                  6-Hour PM2.5 Forecast
-                  <span className="phase-badge">Phase 2</span>
-                </div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <AreaChart data={pm25ForecastData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="pm25-dash-grad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#e74c3c" stopOpacity={0.35} />
-                        <stop offset="95%" stopColor="#e74c3c" stopOpacity={0.03} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
-                    <Area type="monotone" dataKey="pm25" stroke="#e74c3c" fill="url(#pm25-dash-grad)"
-                      strokeWidth={2.5} dot={{ r: 6, fill: '#e74c3c', stroke: '#fff', strokeWidth: 2 }}
-                      activeDot={{ r: 8 }} name="PM2.5 µg/m³" />
-                    <XAxis dataKey="hour" tick={{ fontSize: 13, fill: '#4a6fa5' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12, fill: '#6a8faf' }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<GlassTooltip />} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
           </section>
         )}
 

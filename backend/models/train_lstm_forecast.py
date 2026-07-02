@@ -23,8 +23,9 @@ MODEL_PATH = BASE_DIR / "models_saved" / "aqi_lstm_forecast.keras"
 # ======================
 _, _, df = build_features()
 
-# Phase 2: R2 crossed 0.5 — AQI + PM2.5. Add remaining pollutants at Phase 3 (R2 > 0.7).
-TARGET_COLS = [c for c in ["aqi", "pm25"] if c in df.columns]
+# Phase 3: 48h look-back, 24h horizon — particle targets only (AQI, PM2.5, PM10).
+# CO2 and NO2 are excluded: they follow different physics and degrade LSTM accuracy.
+TARGET_COLS = [c for c in ["aqi", "pm25", "pm10"] if c in df.columns]
 
 FEATURE_COLS = [
     "co2", "humidity", "pressure", "temperature",
@@ -64,16 +65,18 @@ if len(X_train) < 50:
 # MODEL
 # ======================
 model = Sequential([
-    LSTM(64, return_sequences=True, input_shape=(LOOK_BACK, n_features),
+    LSTM(128, return_sequences=True, input_shape=(LOOK_BACK, n_features),
          recurrent_dropout=0.2),
-    Dropout(0.4),
+    Dropout(0.3),
+    LSTM(64, return_sequences=True, recurrent_dropout=0.2),
+    Dropout(0.3),
     LSTM(32, return_sequences=False, recurrent_dropout=0.2),
-    Dropout(0.4),
+    Dropout(0.3),
     Dense(HORIZON * n_targets),
     Reshape((HORIZON, n_targets)),
 ])
 
-model.compile(optimizer=Adam(learning_rate=0.0005), loss="huber", metrics=["mae"])
+model.compile(optimizer=Adam(learning_rate=0.0003), loss="huber", metrics=["mae"])
 
 # ======================
 # TRAIN
@@ -129,6 +132,7 @@ save_metrics("lstm_forecast", len(df), {
     "r2": float(r2),
     "look_back_hours": LOOK_BACK,
     "horizon_hours": HORIZON,
+    "horizon_days": HORIZON // 24,
     "targets": TARGET_COLS,
 })
 

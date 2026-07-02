@@ -1,25 +1,21 @@
-/* Slightly tinted glass for better presence against the richer background */
+/* ── Navbar: white on dark body ── */
 .navbar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   z-index: 1000;
-  background: rgba(240, 248, 255, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(180, 215, 245, 0.55);
-  box-shadow: 0 2px 24px rgba(13, 71, 161, 0.10);
+  background: #ffffff;
+  border-bottom: 1px solid #E5EAF2;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
 .nav-inner {
   max-width: 1200px;
   margin: 0 auto;
-  height: 74px;
+  height: 70px;
   padding: 0 28px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0;
 }
 
 /* ── Logo ── */
@@ -30,80 +26,96 @@
   text-decoration: none;
   font-size: 20px;
   font-weight: 700;
-  color: #1a3a5c;
+  color: #1E2D4E;
   letter-spacing: -0.3px;
 }
 
 .logo-icon {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   border-radius: 50%;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 6px rgba(13,71,161,0.22));
 }
 
-/* Brand name colors — deeper, more saturated */
-.logo-air { color: #0288d1; }
-.logo-ai  { color: #2e7d32; }
+.logo-air { color: #1E2D4E; }
+.logo-ai  { color: #F5A623; }
 
-/* ── Desktop nav links ── */
+/* ── Desktop nav links — fill remaining space, centered ── */
 .nav-links {
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  margin-left: 24px;
+}
+
+/* ── Auth slot — pinned to right edge ── */
+.nav-auth {
+  padding-left: 24px;
+  border-left: 1px solid rgba(30, 45, 78, 0.14);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .nav-link {
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  color: #2c4a6a;
-  padding: 8px 14px;
-  border-radius: 10px;
-  transition: all 0.2s;
+  color: #5A6A80;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.18s;
 }
 
-.nav-link:hover,
+.nav-link:hover {
+  background: #F4F6FB;
+  color: #1E2D4E;
+}
+
 .nav-link.active {
-  background: rgba(2, 136, 209, 0.12);
-  color: #0277bd;
+  background: rgba(245, 166, 35, 0.12);
+  color: #F5A623;
+  font-weight: 600;
 }
 
 /* ── Buttons ── */
 .nav-btn {
   display: inline-block;
-  padding: 9px 22px;
-  border-radius: 50px;
+  padding: 8px 22px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s;
   text-decoration: none;
   border: none;
 }
 
-/* Deep ocean blue — more authority than the previous pale sky blue */
 .login-btn {
-  background: linear-gradient(135deg, #0288d1, #0d47a1);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(2, 136, 209, 0.38);
+  background: #1E2D4E;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(30, 45, 78, 0.28);
 }
 
 .login-btn:hover {
+  background: #F5A623;
+  color: #1E2D4E;
+  box-shadow: 0 4px 14px rgba(245,166,35,0.38);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(2, 136, 209, 0.52);
 }
 
 .logout-btn {
-  background: rgba(231, 76, 60, 0.12);
-  color: #e74c3c;
-  border: 1px solid rgba(231, 76, 60, 0.25);
+  background: rgba(30,45,78,0.08);
+  color: #1E2D4E;
+  border: 1px solid rgba(30,45,78,0.15);
 }
 
 .logout-btn:hover {
-  background: rgba(231, 76, 60, 0.20);
+  background: rgba(30,45,78,0.14);
 }
 
 /* ── Hamburger ── */
@@ -121,7 +133,7 @@
   display: block;
   width: 24px;
   height: 2.5px;
-  background: #1a3a5c;
+  background: #1E2D4E;
   border-radius: 2px;
   transition: all 0.25s;
   transform-origin: center;
@@ -137,47 +149,47 @@
   flex-direction: column;
   gap: 4px;
   padding: 0 20px 16px;
+  background: #ffffff;
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.3s ease;
+  border-top: 1px solid #E5EAF2;
 }
 
-.mobile-menu.open {
-  max-height: 320px;
-}
+.mobile-menu.open { max-height: 320px; }
 
 .mob-link {
   display: block;
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
-  color: #2c4a6a;
+  color: #5A6A80;
   padding: 12px 16px;
-  border-radius: 12px;
-  transition: background 0.2s;
+  border-radius: 8px;
+  transition: background 0.18s;
 }
 
-.mob-link:hover    { background: rgba(2, 136, 209, 0.10); }
-.mob-login         { color: #0277bd; font-weight: 600; }
-.mob-logout        { background: none; border: none; cursor: pointer; width: 100%; text-align: left; color: #e74c3c; }
+.mob-link:hover { background: #F4F6FB; color: #1E2D4E; }
+.mob-login      { color: #1E2D4E; font-weight: 700; }
+.mob-logout     { background: none; border: none; cursor: pointer; width: 100%; text-align: left; color: #5A6A80; font-size: 15px; font-weight: 500; }
 
 /* ══════════════════════
    RESPONSIVE
    ══════════════════════ */
-
 @media (max-width: 1024px) {
   .nav-inner { padding: 0 20px; }
   .nav-link  { padding: 8px 10px; font-size: 13px; }
 }
 
 @media (max-width: 768px) {
-  .nav-inner { height: 64px; }
-  .nav-links  { display: none; }
-  .hamburger  { display: flex; }
+  .nav-inner   { height: 62px; }
+  .nav-links   { display: none; }
+  .nav-auth    { display: none; }
+  .hamburger   { display: flex; margin-left: auto; }
   .mobile-menu { display: flex; }
 }
 
 @media (max-width: 380px) {
   .nav-logo  { font-size: 17px; }
-  .logo-icon { width: 40px; height: 40px; }
+  .logo-icon { width: 36px; height: 36px; }
 }

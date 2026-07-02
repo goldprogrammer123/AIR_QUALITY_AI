@@ -17,6 +17,7 @@ from api.schemas import (
     AllPredictions,
     PollutantLevels,
 )
+
 from utils.inference import run_inference
 
 router = APIRouter(prefix="/predict", tags=["Predictions"])
@@ -47,6 +48,8 @@ def predict_all():
         trend_direction=data["trend_direction"],
         trend_confidence=data["trend_confidence"],
         forecast_6h=data["forecast_6h"],
+        pm25_forecast_6h=data["pm25_forecast_6h"],
+        pm10_forecast_6h=data["pm10_forecast_6h"],
         pollutants=PollutantLevels(**data["pollutants"]),
         timestamp=data["timestamp"],
     )
@@ -83,8 +86,8 @@ def predict_trend():
 def predict_forecast():
     """
     LSTM model only.
-    Returns a list of 6 predicted AQI values,
-    one for each of the next 6 hours.
+    Returns a list of 24 predicted AQI values,
+    one for each of the next 24 hours.
     """
     data = _get_data()
     return ForecastPrediction(

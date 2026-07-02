@@ -180,11 +180,14 @@ def run_inference() -> dict:
         forecast_scaled.reshape(-1, n_targets)
     )                                                                 # (HORIZON, n_targets)
 
-    forecast_aqi  = [round(float(v), 2) for v in forecast_inv[:, 0]]
-    forecast_pm25 = (
-        [round(float(v), 2) for v in forecast_inv[:, 1]]
-        if n_targets >= 2 else None
-    )
+    def _extract(idx):
+        if n_targets > idx:
+            return [round(float(v), 2) for v in forecast_inv[:, idx]]
+        return None
+
+    forecast_aqi  = _extract(0)   # always present
+    forecast_pm25 = _extract(1)   # present when model has >= 2 targets
+    forecast_pm10 = _extract(2)   # present when model has >= 3 targets
 
     # Current pollutant levels from the latest row
     last = df.iloc[-1]
@@ -204,13 +207,14 @@ def run_inference() -> dict:
     }
 
     result = {
-        "current_aqi":        round(aqi_pred, 2),
-        "trend_direction":    "rising" if rising else "falling",
-        "trend_confidence":   round(confidence * 100, 1),
+        "current_aqi":         round(aqi_pred, 2),
+        "trend_direction":     "rising" if rising else "falling",
+        "trend_confidence":    round(confidence * 100, 1),
         "forecast_6h":        forecast_aqi,
-        "pm25_forecast_6h":   forecast_pm25,   # None until Phase 2 model is trained
-        "pollutants":         pollutants,
-        "timestamp":          datetime.now(timezone.utc).isoformat(),
+        "pm25_forecast_6h":   forecast_pm25,
+        "pm10_forecast_6h":   forecast_pm10,
+        "pollutants":          pollutants,
+        "timestamp":           datetime.now(timezone.utc).isoformat(),
     }
 
     # Store in cache with current timestamp

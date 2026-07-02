@@ -20,7 +20,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="nav-inner">
-        {/* Logo */}
+        {/* Logo — far left */}
         <NavLink to="/" className="nav-logo" onClick={close}>
           <img src={ardhiLogo} alt="Ardhi University" className="logo-icon" />
           <span className="logo-text">
@@ -29,28 +29,24 @@ export default function Navbar() {
           </span>
         </NavLink>
 
-        {/* Desktop links */}
+        {/* Nav links — center */}
         <ul className="nav-links">
           <li><NavLink to="/"                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Home</NavLink></li>
           <li><NavLink to="/map"             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Map</NavLink></li>
           <li><NavLink to="/health-guidance" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Health Guidance</NavLink></li>
-          {user ? (
-            <>
-              <li><NavLink to="/dashboard"   className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Dashboard</NavLink></li>
-              <li>
-                <button className="nav-btn logout-btn" onClick={handleLogout}>
-                  Logout
-                </button>
-              </li>
-            </>
-          ) : (
-            <li>
-              <NavLink to="/login" className="nav-btn login-btn">
-                Login
-              </NavLink>
-            </li>
+          {user && (
+            <li><NavLink to="/dashboard"     className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Dashboard</NavLink></li>
           )}
         </ul>
+
+        {/* Auth button — right, separated */}
+        <div className="nav-auth">
+          {user ? (
+            <button className="nav-btn logout-btn" onClick={handleLogout}>Logout</button>
+          ) : (
+            <NavLink to="/login" className="nav-btn login-btn">Login</NavLink>
+          )}
+        </div>
 
         {/* Mobile hamburger */}
         <button

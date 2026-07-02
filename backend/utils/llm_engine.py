@@ -52,11 +52,27 @@ def get_recommendation(inference_result: dict) -> str:
     ):
         return _llm_cache["result"]
 
-    trend     = inference_result["trend_direction"]
+    trend      = inference_result["trend_direction"]
     confidence = inference_result["trend_confidence"]
-    forecast  = inference_result["forecast_6h"]
-    p         = inference_result["pollutants"]
-    category  = _aqi_category(aqi)
+    forecast   = inference_result["forecast_6h"]
+    p          = inference_result["pollutants"]
+    category   = _aqi_category(aqi)
+
+    aqi_6h  = forecast or []
+    pm25_6h = inference_result.get("pm25_forecast_6h") or []
+    pm10_6h = inference_result.get("pm10_forecast_6h") or []
+
+    def _fmt_hourly(label, values, unit=""):
+        if not values:
+            return ""
+        pairs = ", ".join(f"+{i+1}h: {v}{unit}" for i, v in enumerate(values))
+        return f"- {label}: {pairs}\n"
+
+    forecast_block = (
+        _fmt_hourly("AQI",   aqi_6h)
+        + _fmt_hourly("PM2.5", pm25_6h, " µg/m³")
+        + _fmt_hourly("PM10",  pm10_6h, " µg/m³")
+    )
 
     prompt = f"""You are an air quality health expert. Based on the EXACT live readings below,
 provide specific health effects, who is at risk right now, and what people must do immediately
@@ -72,8 +88,9 @@ LIVE AIR QUALITY READINGS:
 - Humidity:    {p['humidity']}%
 - Temperature: {p['temperature']}°C
 - Trend: AQI is {trend} (confidence: {confidence}%)
-- 6-hour AQI forecast: {forecast}
 
+6-HOUR FORECAST (hourly):
+{forecast_block}
 Provide your response in this exact structure:
 
 **Current Health Effects**
@@ -88,8 +105,8 @@ Provide your response in this exact structure:
 **What to Avoid**
 (Specific activities or situations to avoid given these conditions)
 
-**Forecast Warning**
-(Based on the 6-hour forecast trend, what should people expect and prepare for)
+**6-Hour Forecast Warning**
+(Based on the 6-hour pollutant forecasts above, what should people expect and prepare for in the next 6 hours)
 """
 
     client = _get_client()

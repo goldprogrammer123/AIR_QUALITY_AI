@@ -56,14 +56,10 @@
   filter: drop-shadow(0 2px 8px rgba(13,71,161,0.20));
 }
 
-/* Rich ocean → forest gradient matching the navbar brand */
 .login-logo-text {
   font-size: 20px;
   font-weight: 800;
-  background: linear-gradient(90deg, #0288d1, #2e7d32);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1E2D4E;
 }
 
 /* ── Heading ── */
@@ -103,16 +99,16 @@
 .field-input-wrap {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.28);
-  border: 1.5px solid rgba(255, 255, 255, 0.52);
+  background: #F4F6FB;
+  border: 1.5px solid #D0D9E8;
   border-radius: 14px;
   padding: 0 14px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .field-input-wrap:focus-within {
-  border-color: rgba(2, 136, 209, 0.55);
-  box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.12);
+  border-color: rgba(245, 166, 35, 0.65);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.12);
 }
 
 .field-icon { font-size: 17px; margin-right: 10px; }
@@ -153,18 +149,18 @@
   font-weight: 500;
 }
 
-/* ── Submit button — deep ocean blue matching the navbar CTA ── */
+/* ── Submit button ── */
 .login-btn {
   width: 100%;
   padding: 15px;
   border-radius: 50px;
   border: none;
-  background: linear-gradient(135deg, #0288d1, #0d47a1);
+  background: #1E2D4E;
   color: #fff;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(2, 136, 209, 0.38);
+  box-shadow: 0 6px 20px rgba(30, 45, 78, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,8 +170,10 @@
 }
 
 .login-btn:hover:not(:disabled) {
+  background: #F5A623;
+  color: #1E2D4E;
   transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(2, 136, 209, 0.52);
+  box-shadow: 0 10px 28px rgba(245, 166, 35, 0.40);
 }
 
 .login-btn:disabled { opacity: 0.75; cursor: not-allowed; }
@@ -191,8 +189,8 @@
 
 /* ── Demo hint ── */
 .demo-hint {
-  background: rgba(2, 136, 209, 0.07);
-  border: 1px dashed rgba(2, 136, 209, 0.30);
+  background: rgba(30, 45, 78, 0.06);
+  border: 1px dashed rgba(30, 45, 78, 0.22);
   border-radius: 14px;
   padding: 14px 16px;
   text-align: center;
@@ -230,4 +228,4 @@
   transition: color 0.2s;
 }
 
-.back-home:hover { color: #0277bd; }
+.back-home:hover { color: #F5A623; }
