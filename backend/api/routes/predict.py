@@ -1,96 +1,82 @@
 """
 Prediction Routes
 =================
-Exposes the three ML models as REST endpoints.
-
-  GET /predict/all      — runs all three models in one call (recommended for dashboard)
-  GET /predict/current  — regression model: next 1-hour AQI
-  GET /predict/trend    — trend model: is AQI rising or falling?
-  GET /predict/forecast — LSTM model: AQI for each of the next 6 hours
+  GET /predict/all              — all sensors, all models (main endpoint)
+  GET /predict/sensor/{sensor}  — one sensor: 'lands' or 'planning'
+  GET /predict/current/{sensor} — regression only for one sensor
+  GET /predict/trend/{sensor}   — trend only for one sensor
+  GET /predict/forecast/{sensor}— LSTM forecast only for one sensor
 """
 
 from fastapi import APIRouter, HTTPException
 from api.schemas import (
+    AllSensorsResponse,
+    SensorPrediction,
+    PollutantLevels,
     CurrentPrediction,
     TrendPrediction,
     ForecastPrediction,
-    AllPredictions,
-    PollutantLevels,
 )
-
-from utils.inference import run_inference
+from utils.inference import run_inference, run_all_inference
 
 router = APIRouter(prefix="/predict", tags=["Predictions"])
 
+VALID_SENSORS = {"lands", "planning"}
 
-def _get_data():
-    """
-    Run the full inference pipeline and return results.
-    Raises HTTP 500 if InfluxDB is unreachable or models fail.
-    """
+
+def _get_sensor_data(sensor: str) -> dict:
+    if sensor not in VALID_SENSORS:
+        raise HTTPException(status_code=400, detail=f"Unknown sensor '{sensor}'. Use: {sorted(VALID_SENSORS)}")
     try:
-        return run_inference()
+        return run_inference(sensor)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/all", response_model=AllPredictions)
-def predict_all():
-    """
-    Run all three models in a single call.
-    Returns: current AQI, trend direction + confidence,
-             6-hour forecast curve, and current pollutant levels.
-    Use this endpoint for the main dashboard.
-    """
-    data = _get_data()
-    return AllPredictions(
+def _to_sensor_prediction(data: dict) -> SensorPrediction:
+    return SensorPrediction(
         current_aqi=data["current_aqi"],
         trend_direction=data["trend_direction"],
         trend_confidence=data["trend_confidence"],
         forecast_6h=data["forecast_6h"],
-        pm25_forecast_6h=data["pm25_forecast_6h"],
-        pm10_forecast_6h=data["pm10_forecast_6h"],
+        pm25_forecast_6h=data.get("pm25_forecast_6h"),
+        pm10_forecast_6h=data.get("pm10_forecast_6h"),
         pollutants=PollutantLevels(**data["pollutants"]),
         timestamp=data["timestamp"],
     )
 
 
-@router.get("/current", response_model=CurrentPrediction)
-def predict_current():
-    """
-    Regression model only.
-    Returns the predicted AQI value for the next 1 hour.
-    """
-    data = _get_data()
-    return CurrentPrediction(
-        current_aqi=data["current_aqi"],
-        timestamp=data["timestamp"],
+@router.get("/all", response_model=AllSensorsResponse)
+def predict_all():
+    """Run all models for all sensors. Main endpoint for the dashboard."""
+    try:
+        results = run_all_inference()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return AllSensorsResponse(
+        sensors={sensor: _to_sensor_prediction(data) for sensor, data in results.items()}
     )
 
 
-@router.get("/trend", response_model=TrendPrediction)
-def predict_trend():
-    """
-    Trend classification model only.
-    Returns whether AQI is rising or falling and
-    how confident the model is (0–100%).
-    """
-    data = _get_data()
-    return TrendPrediction(
-        direction=data["trend_direction"],
-        confidence=data["trend_confidence"],
-    )
+@router.get("/sensor/{sensor}", response_model=SensorPrediction)
+def predict_sensor(sensor: str):
+    """All models for a single sensor."""
+    return _to_sensor_prediction(_get_sensor_data(sensor))
 
 
-@router.get("/forecast", response_model=ForecastPrediction)
-def predict_forecast():
-    """
-    LSTM model only.
-    Returns a list of 24 predicted AQI values,
-    one for each of the next 24 hours.
-    """
-    data = _get_data()
-    return ForecastPrediction(
-        forecast_6h=data["forecast_6h"],
-        timestamp=data["timestamp"],
-    )
+@router.get("/current/{sensor}", response_model=CurrentPrediction)
+def predict_current(sensor: str):
+    data = _get_sensor_data(sensor)
+    return CurrentPrediction(sensor=sensor, current_aqi=data["current_aqi"], timestamp=data["timestamp"])
+
+
+@router.get("/trend/{sensor}", response_model=TrendPrediction)
+def predict_trend(sensor: str):
+    data = _get_sensor_data(sensor)
+    return TrendPrediction(sensor=sensor, direction=data["trend_direction"], confidence=data["trend_confidence"])
+
+
+@router.get("/forecast/{sensor}", response_model=ForecastPrediction)
+def predict_forecast(sensor: str):
+    data = _get_sensor_data(sensor)
+    return ForecastPrediction(sensor=sensor, forecast_6h=data["forecast_6h"], timestamp=data["timestamp"])

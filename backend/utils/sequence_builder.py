@@ -3,12 +3,21 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import joblib
 
-# Phase 3: 24h look-back, 6h horizon, targets = aqi + pm25 + pm10.
 LOOK_BACK = 24
 HORIZON   = 6
 
-FEAT_SCALER_PATH = Path(__file__).resolve().parent.parent / "models_saved" / "lstm_feat_scaler.pkl"
-TGT_SCALER_PATH = Path(__file__).resolve().parent.parent / "models_saved" / "lstm_tgt_scaler.pkl"
+MODELS_DIR = Path(__file__).resolve().parent.parent / "models_saved"
+
+# Legacy (combined) scaler paths — kept for backward compat
+FEAT_SCALER_PATH = MODELS_DIR / "lstm_feat_scaler.pkl"
+TGT_SCALER_PATH  = MODELS_DIR / "lstm_tgt_scaler.pkl"
+
+
+def _scaler_paths(sensor: str = None):
+    if sensor:
+        d = MODELS_DIR / sensor
+        return d / "lstm_feat_scaler.pkl", d / "lstm_tgt_scaler.pkl"
+    return FEAT_SCALER_PATH, TGT_SCALER_PATH
 
 
 def build_sequences(df, feature_cols, target_cols, look_back=LOOK_BACK, horizon=HORIZON):
@@ -55,14 +64,14 @@ def build_sequences(df, feature_cols, target_cols, look_back=LOOK_BACK, horizon=
     return X_train, X_test, y_train, y_test, feat_scaler, tgt_scaler
 
 
-def save_scalers(feat_scaler, tgt_scaler):
-    FEAT_SCALER_PATH.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(feat_scaler, FEAT_SCALER_PATH)
-    joblib.dump(tgt_scaler, TGT_SCALER_PATH)
-    print(f"Scalers saved to {FEAT_SCALER_PATH.parent}")
+def save_scalers(feat_scaler, tgt_scaler, sensor: str = None):
+    fp, tp = _scaler_paths(sensor)
+    fp.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(feat_scaler, fp)
+    joblib.dump(tgt_scaler, tp)
+    print(f"Scalers saved to {fp.parent}")
 
 
-def load_scalers():
-    feat_scaler = joblib.load(FEAT_SCALER_PATH)
-    tgt_scaler = joblib.load(TGT_SCALER_PATH)
-    return feat_scaler, tgt_scaler
+def load_scalers(sensor: str = None):
+    fp, tp = _scaler_paths(sensor)
+    return joblib.load(fp), joblib.load(tp)

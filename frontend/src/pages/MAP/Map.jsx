@@ -4,17 +4,16 @@ import { fetchAll } from '../../services/api'
 import { getAQIColor, getAQICategory, SENSOR_NODES, AQI_SCALE } from '../../utils/aqi'
 import './Map.css'
 
-/* Midpoint between Land Building and Planning Building, Ardhi University */
 const DAR_CENTER = [-6.7646, 39.2122]
 
 export default function MapPage() {
-  const [predictions, setPredictions] = useState(null)
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState(null)
+  const [sensors, setSensors] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState(null)
 
   useEffect(() => {
     fetchAll()
-      .then((r) => setPredictions(r.data))
+      .then((r) => setSensors(r.data.sensors))
       .catch(() => setError('Could not reach the backend API.'))
       .finally(() => setLoading(false))
   }, [])
@@ -36,10 +35,6 @@ export default function MapPage() {
     </div>
   )
 
-  const { current_aqi, pollutants } = predictions
-  const aqiColor    = getAQIColor(current_aqi)
-  const aqiCategory = getAQICategory(current_aqi)
-
   return (
     <div className="map-page">
       {/* Page header */}
@@ -47,8 +42,8 @@ export default function MapPage() {
         <div className="map-header-inner">
           <h1 className="map-title">Sensor Map</h1>
           <p className="map-sub">
-            General air quality index for Dar es Salaam. Sensor nodes show their
-            installation locations. Click a node for details.
+            Real-time AQI for each sensor node at Ardhi University, Dar es Salaam.
+            Click a node for details.
           </p>
         </div>
 
@@ -57,7 +52,7 @@ export default function MapPage() {
           <div className="card-title">AQI Legend</div>
           {AQI_SCALE.map((s) => (
             <div key={s.label} className="legend-row">
-              <span className="legend-dot" style={{ background: s.color }} />
+              <span className="legend-dot"   style={{ background: s.color }} />
               <span className="legend-range" style={{ color: s.color }}>{s.label}</span>
               <span className="legend-vals">{s.range}</span>
             </div>
@@ -67,92 +62,94 @@ export default function MapPage() {
 
       {/* Leaflet map */}
       <div className="map-container-wrap">
-        <MapContainer
-          center={DAR_CENTER}
-          zoom={17}
-          className="leaflet-map"
-          scrollWheelZoom
-        >
+        <MapContainer center={DAR_CENTER} zoom={17} className="leaflet-map" scrollWheelZoom>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {SENSOR_NODES.map((node) => (
-            <CircleMarker
-              key={node.id}
-              center={[node.lat, node.lng]}
-              radius={22}
-              pathOptions={{
-                color: aqiColor,
-                fillColor: aqiColor,
-                fillOpacity: 0.75,
-                weight: 3,
-              }}
-            >
-              <Popup className="aqi-popup">
-                <div className="popup-inner">
-                  <h3 className="popup-title">📡 {node.name}</h3>
-                  <p className="popup-desc">{node.description}</p>
-                  <div className="popup-aqi" style={{ color: aqiColor }}>
-                    <span className="popup-aqi-num">{Math.round(current_aqi)}</span>
-                    <span className="popup-aqi-label">AQI</span>
+          {SENSOR_NODES.map((node) => {
+            const s        = sensors?.[node.sensorKey]
+            const aqi      = s?.current_aqi ?? 0
+            const color    = getAQIColor(aqi)
+            const category = getAQICategory(aqi)
+            const p        = s?.pollutants ?? {}
+
+            return (
+              <CircleMarker
+                key={node.id}
+                center={[node.lat, node.lng]}
+                radius={22}
+                pathOptions={{ color, fillColor: color, fillOpacity: 0.75, weight: 3 }}
+              >
+                <Popup className="aqi-popup">
+                  <div className="popup-inner">
+                    <h3 className="popup-title">📡 {node.name}</h3>
+                    <p className="popup-desc">{node.description}</p>
+                    <div className="popup-aqi" style={{ color }}>
+                      <span className="popup-aqi-num">{Math.round(aqi)}</span>
+                      <span className="popup-aqi-label">AQI</span>
+                    </div>
+                    <div className="popup-badge" style={{ background: `${color}20`, color }}>
+                      {category}
+                    </div>
+                    <div className="popup-stats">
+                      {p.pm25 > 0 && <div className="popup-stat"><span>PM2.5</span><strong>{p.pm25} µg/m³</strong></div>}
+                      {p.pm10 > 0 && <div className="popup-stat"><span>PM10</span><strong>{p.pm10} µg/m³</strong></div>}
+                      <div className="popup-stat"><span>Humidity</span><strong>{p.humidity}%</strong></div>
+                      <div className="popup-stat"><span>Temperature</span><strong>{p.temperature}°C</strong></div>
+                    </div>
                   </div>
-                  <div className="popup-badge" style={{ background: `${aqiColor}20`, color: aqiColor }}>
-                    {aqiCategory}
-                  </div>
-                  <div className="popup-stats">
-                    {pollutants.pm25 > 0 && (
-                      <div className="popup-stat"><span>PM2.5</span><strong>{pollutants.pm25} µg/m³</strong></div>
-                    )}
-                    {pollutants.pm10 > 0 && (
-                      <div className="popup-stat"><span>PM10</span><strong>{pollutants.pm10} µg/m³</strong></div>
-                    )}
-                    <div className="popup-stat"><span>Humidity</span><strong>{pollutants.humidity}%</strong></div>
-                    <div className="popup-stat"><span>Temperature</span><strong>{pollutants.temperature}°C</strong></div>
-                  </div>
-                </div>
-              </Popup>
-            </CircleMarker>
-          ))}
+                </Popup>
+              </CircleMarker>
+            )
+          })}
         </MapContainer>
       </div>
 
-      {/* Sensor node cards below the map */}
+      {/* Per-sensor cards below the map */}
       <div className="sensor-cards">
-        {SENSOR_NODES.map((node, i) => (
-          <div key={node.id} className="glass-card sensor-card">
-            <div className="sc-header">
-              <span className="sc-icon">📡</span>
-              <div>
-                <h3 className="sc-name">{node.name}</h3>
-                <p className="sc-desc">{node.description}</p>
-              </div>
-              <div className="sc-status">
-                <span className="sc-dot" style={{ background: aqiColor }} />
-                Live
-              </div>
-            </div>
+        {SENSOR_NODES.map((node) => {
+          const s        = sensors?.[node.sensorKey]
+          const aqi      = s?.current_aqi ?? 0
+          const color    = getAQIColor(aqi)
+          const category = getAQICategory(aqi)
+          const p        = s?.pollutants ?? {}
 
-            <div className="sc-aqi-row">
-              <div className="sc-aqi-circle" style={{ borderColor: aqiColor, color: aqiColor }}>
-                <span className="sc-aqi-num">{Math.round(current_aqi)}</span>
-                <span className="sc-aqi-label">AQI</span>
+          return (
+            <div key={node.id} className="glass-card sensor-card">
+              <div className="sc-header">
+                <span className="sc-icon">📡</span>
+                <div>
+                  <h3 className="sc-name">{node.name}</h3>
+                  <p className="sc-desc">{node.description}</p>
+                </div>
+                <div className="sc-status">
+                  <span className="sc-dot" style={{ background: color }} />
+                  Live
+                </div>
               </div>
-              <div className="sc-details">
-                <Detail label="Category"   val={aqiCategory} color={aqiColor} />
-                {pollutants.pm25 > 0 && <Detail label="PM2.5" val={`${pollutants.pm25} µg/m³`} />}
-                {pollutants.pm10 > 0 && <Detail label="PM10"  val={`${pollutants.pm10} µg/m³`} />}
-                <Detail label="Humidity"    val={`${pollutants.humidity}%`} />
-                <Detail label="Temperature" val={`${pollutants.temperature}°C`} />
-              </div>
-            </div>
 
-            <p className="sc-coords">
-              Coordinates: {node.lat.toFixed(4)}, {node.lng.toFixed(4)}
-            </p>
-          </div>
-        ))}
+              <div className="sc-aqi-row">
+                <div className="sc-aqi-circle" style={{ borderColor: color, color }}>
+                  <span className="sc-aqi-num">{Math.round(aqi)}</span>
+                  <span className="sc-aqi-label">AQI</span>
+                </div>
+                <div className="sc-details">
+                  <Detail label="Category"    val={category}          color={color} />
+                  {p.pm25 > 0 && <Detail label="PM2.5" val={`${p.pm25} µg/m³`} />}
+                  {p.pm10 > 0 && <Detail label="PM10"  val={`${p.pm10} µg/m³`} />}
+                  <Detail label="Humidity"    val={`${p.humidity}%`} />
+                  <Detail label="Temperature" val={`${p.temperature}°C`} />
+                </div>
+              </div>
+
+              <p className="sc-coords">
+                Coordinates: {node.lat.toFixed(4)}, {node.lng.toFixed(4)}
+              </p>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -162,9 +159,7 @@ function Detail({ label, val, color }) {
   return (
     <div className="sc-detail-row">
       <span className="sc-detail-label">{label}</span>
-      <span className="sc-detail-val" style={color ? { color } : {}}>
-        {val}
-      </span>
+      <span className="sc-detail-val" style={color ? { color } : {}}>{val}</span>
     </div>
   )
 }

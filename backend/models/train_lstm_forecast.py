@@ -1,4 +1,5 @@
 import sys
+import argparse
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -16,12 +17,20 @@ from utils.history_manager import save_metrics
 from utils.model_backups import backup_model
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH = BASE_DIR / "models_saved" / "aqi_lstm_forecast.keras"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--sensor", default=None, help="Sensor key: 'lands' or 'planning'")
+args = parser.parse_args()
+SENSOR = args.sensor
+
+model_dir  = BASE_DIR / "models_saved" / (SENSOR if SENSOR else "")
+model_dir.mkdir(parents=True, exist_ok=True)
+MODEL_PATH = model_dir / "aqi_lstm_forecast.keras"
 
 # ======================
 # LOAD DATA
 # ======================
-_, _, df = build_features()
+_, _, df = build_features(sensor=SENSOR)
 
 # Phase 3: 48h look-back, 24h horizon — particle targets only (AQI, PM2.5, PM10).
 # CO2 and NO2 are excluded: they follow different physics and degrade LSTM accuracy.
@@ -139,10 +148,9 @@ save_metrics("lstm_forecast", len(df), {
 # ======================
 # BACKUP + SAVE
 # ======================
-backup_model(MODEL_PATH, "lstm_forecast")
+backup_model(MODEL_PATH, f"lstm_forecast_{SENSOR or 'combined'}")
 
-MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 model.save(MODEL_PATH)
-save_scalers(feat_scaler, tgt_scaler)
+save_scalers(feat_scaler, tgt_scaler, sensor=SENSOR)
 
 print(f"\nLSTM model saved → {MODEL_PATH}")

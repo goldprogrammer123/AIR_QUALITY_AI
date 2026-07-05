@@ -12,30 +12,38 @@ class PollutantLevels(BaseModel):
     temperature: float
 
 
+class SensorPrediction(BaseModel):
+    current_aqi:       float
+    trend_direction:   str
+    trend_confidence:  float
+    forecast_6h:       list[float]
+    pm25_forecast_6h:  Optional[list[float]]
+    pm10_forecast_6h:  Optional[list[float]]
+    pollutants:        PollutantLevels
+    timestamp:         str
+
+
+class AllSensorsResponse(BaseModel):
+    sensors: dict[str, SensorPrediction]
+
+
+# ── Kept for individual sub-endpoints ──────────────────────────
 class CurrentPrediction(BaseModel):
+    sensor:      str
     current_aqi: float
     timestamp:   str
 
 
 class TrendPrediction(BaseModel):
-    direction:  str    # "rising" or "falling"
-    confidence: float  # percentage 0–100
+    sensor:     str
+    direction:  str
+    confidence: float
 
 
 class ForecastPrediction(BaseModel):
-    forecast_6h: list[float]   # 24 hourly AQI values (1 day)
-    timestamp:    str
-
-
-class AllPredictions(BaseModel):
-    current_aqi:        float
-    trend_direction:    str
-    trend_confidence:   float
-    forecast_6h:       list[float]           # 24-hour AQI forecast
-    pm25_forecast_6h:  Optional[list[float]]  # 24-hour PM2.5 forecast
-    pm10_forecast_6h:  Optional[list[float]]  # 24-hour PM10 forecast
-    pollutants:         PollutantLevels
-    timestamp:          str
+    sensor:      str
+    forecast_6h: list[float]
+    timestamp:   str
 
 
 class RecommendationResponse(BaseModel):

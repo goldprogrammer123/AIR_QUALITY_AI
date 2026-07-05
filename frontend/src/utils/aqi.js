@@ -27,10 +27,12 @@ export const AQI_SCALE = [
   { range: '301 – 500', label: 'Hazardous',                  color: '#641e16', bg: '#f9ebea', description: 'Health warning of emergency conditions. Everyone is more likely to be affected.' },
 ]
 
-/* Two physical sensor nodes installed at Ardhi University, Dar es Salaam */
+/* Two physical sensor nodes installed at Ardhi University, Dar es Salaam.
+   sensorKey matches the backend API key returned by /predict/all */
 export const SENSOR_NODES = [
   {
     id: 'land-building',
+    sensorKey: 'lands',
     name: 'Land Building',
     description: 'Ardhi University — School of Land Science & Technology',
     lat: -6.7649315,
@@ -38,6 +40,7 @@ export const SENSOR_NODES = [
   },
   {
     id: 'planning-building',
+    sensorKey: 'planning',
     name: 'Planning Building',
     description: 'Ardhi University — School of Urban & Regional Planning',
     lat: -6.7643202,

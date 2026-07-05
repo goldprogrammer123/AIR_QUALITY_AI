@@ -20,9 +20,10 @@ from utils.aqi_calculator import (
     no2_bp,
     so2_bp
 )
+from data.fetch_data import fetch_raw_data_for_sensor
 
 
-def build_features():
+def build_features(sensor: str = None):
 
     # ==========================================
     # LOAD CACHED DATA
@@ -30,12 +31,15 @@ def build_features():
 
     BASE_DIR = Path(__file__).resolve().parent.parent
 
-    cache_file = (
-        BASE_DIR /
-        "data" /
-        "cache" /
-        "raw_data.parquet"
-    )
+    cache_name = f"raw_data_{sensor}.parquet" if sensor else "raw_data.parquet"
+    cache_file = BASE_DIR / "data" / "cache" / cache_name
+
+    if sensor and not cache_file.exists():
+        print(f"No cache for sensor '{sensor}' — fetching from InfluxDB…")
+        df_raw = fetch_raw_data_for_sensor(sensor)
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        df_raw.to_parquet(cache_file, index=False)
+        print(f"Cached {len(df_raw):,} rows → {cache_file}")
 
     if not cache_file.exists():
         raise FileNotFoundError(
@@ -43,8 +47,7 @@ def build_features():
             "Run fetch_data.py first."
         )
 
-    print(f"\nLoading cached data...")
-    print(cache_file)
+    print(f"\nLoading cached data ({cache_name})…")
 
     df = pd.read_parquet(cache_file)
 

@@ -8,41 +8,48 @@ import joblib
 import pandas as pd
 from datetime import datetime, timezone
 
-from data.fetch_data import fetch_recent_data
+from data.fetch_data import fetch_recent_data_for_sensor, SENSOR_TOPICS
 from utils.aqi_calculator import compute_aqi, pm25_bp, pm10_bp, no2_bp, so2_bp
 from utils.sequence_builder import load_scalers, LOOK_BACK
 
-# In-memory cache so InfluxDB + model inference runs at most once per 5 minutes
-_cache: dict = {"result": None, "ts": 0.0}
-_CACHE_TTL = 300  # seconds
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Loaded once at API startup, reused on every request
-_models: dict = {}
+# Cache per sensor — results valid for 5 minutes
+_cache: dict[str, dict] = {}
+_CACHE_TTL = 300
+
+# Models loaded once at startup, keyed by sensor name
+_models: dict[str, dict] = {}
 
 
 def load_models():
-    """Load all saved models into memory. Called once at API startup."""
+    """Load models for all sensors into memory. Called once at API startup."""
     if _models:
         return _models
 
     from keras.models import load_model
 
-    _models["regression"] = joblib.load(BASE_DIR / "models_saved" / "aqi_regression.pkl")
-    _models["trend"]      = joblib.load(BASE_DIR / "models_saved" / "aqi_trend.pkl")
-    _models["lstm"]       = load_model(BASE_DIR / "models_saved" / "aqi_lstm_forecast.keras")
-    feat_scaler, tgt_scaler = load_scalers()
-    _models["feat_scaler"] = feat_scaler
-    _models["tgt_scaler"]  = tgt_scaler
+    for sensor in SENSOR_TOPICS:
+        d = BASE_DIR / "models_saved" / sensor
+        if not (d / "aqi_regression.pkl").exists():
+            print(f"WARNING: No models found for sensor '{sensor}' — run train_pipeline.py first.")
+            continue
 
-    print("All models loaded successfully.")
+        feat_scaler, tgt_scaler = load_scalers(sensor=sensor)
+        _models[sensor] = {
+            "regression":   joblib.load(d / "aqi_regression.pkl"),
+            "trend":        joblib.load(d / "aqi_trend.pkl"),
+            "lstm":         load_model(d / "aqi_lstm_forecast.keras"),
+            "feat_scaler":  feat_scaler,
+            "tgt_scaler":   tgt_scaler,
+        }
+        print(f"Models loaded for sensor '{sensor}'.")
+
     return _models
 
 
 def _build_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Replicate the same feature engineering as build_features.py on a small window."""
-
+    """Replicate feature engineering from build_features.py on a live window."""
     df["name"] = df["name"].astype(str).str.replace(".", "_", regex=False)
     df = (
         df.pivot_table(index="_time", columns="name", values="value", aggfunc="mean")
@@ -89,7 +96,7 @@ def _build_features(df: pd.DataFrame) -> pd.DataFrame:
         df["aqi_roll12"] = df["aqi"].rolling(12).mean()
         df["pm25_roll3"] = df["pm25"].rolling(3).mean()
         df["pm25_roll6"] = df["pm25"].rolling(6).mean()
-        df["co2_roll3"]  = df["co2"].rolling(3).mean()
+        df["co2_roll3"]  = df["co2"].rolling(3).mean() if "co2" in df.columns else 0
 
     df = df.ffill().bfill()
     return df
@@ -120,105 +127,102 @@ _LSTM_FEATURES = [
 
 
 def _select_features(df: pd.DataFrame, model) -> pd.DataFrame:
-    """
-    Build a single-row DataFrame that exactly matches what `model` was trained on.
-    Any column the model expects that is missing from `df` is filled with NaN
-    (which ffill/bfill in _build_features already handles for most cases).
-    """
     required = model.feature_names_in_.tolist()
-    # Add missing columns so predict() never sees an unseen / missing name error
     for col in required:
         if col not in df.columns:
             df[col] = np.nan
     return df[required].iloc[[-1]]
 
 
-def run_inference() -> dict:
+def run_inference(sensor: str) -> dict:
     """
-    Fetch the last 72 hours, run all three models, return predictions
-    and current pollutant levels ready for the API to serve.
-    Results are cached for 5 minutes to avoid hammering InfluxDB.
+    Run all three models for a single sensor.
+    Results are cached for 5 minutes per sensor.
     """
     now = time.time()
-    if _cache["result"] and (now - _cache["ts"]) < _CACHE_TTL:
-        return _cache["result"]
+    cached = _cache.get(sensor)
+    if cached and (now - cached["ts"]) < _CACHE_TTL:
+        return cached["result"]
 
     models = load_models()
+    if sensor not in models:
+        raise ValueError(f"No models loaded for sensor '{sensor}'. Run train_pipeline.py first.")
 
-    raw_df = fetch_recent_data(hours=72)
+    m = models[sensor]
+
+    raw_df = fetch_recent_data_for_sensor(sensor, hours=48)
     if raw_df is None or raw_df.empty:
-        raise ValueError("No recent data returned from InfluxDB.")
+        raise ValueError(f"No recent data from InfluxDB for sensor '{sensor}'.")
 
     df = _build_features(raw_df)
 
     if len(df) < LOOK_BACK:
         raise ValueError(
-            f"Not enough recent data for inference — need {LOOK_BACK} rows, got {len(df)}."
+            f"Not enough data for sensor '{sensor}' — need {LOOK_BACK} rows, got {len(df)}."
         )
 
-    # Regression — next 1-hour AQI
-    # Use exactly the features the regression model was trained on (30 features)
-    reg_row  = _select_features(df, models["regression"])
-    aqi_pred = float(models["regression"].predict(reg_row)[0])
+    # Regression — next-hour AQI
+    reg_row  = _select_features(df, m["regression"])
+    aqi_pred = float(m["regression"].predict(reg_row)[0])
 
     # Trend — rising or falling
-    # Use exactly the features the trend model was trained on (12 features)
-    trend_row   = _select_features(df, models["trend"])
-    trend_proba = models["trend"].predict_proba(trend_row)[0]
+    trend_row   = _select_features(df, m["trend"])
+    trend_proba = m["trend"].predict_proba(trend_row)[0]
     rising      = bool(trend_proba[1] >= 0.5)
     confidence  = float(trend_proba[1] if rising else trend_proba[0])
 
-    # LSTM — multi-target forecast (AQI always; PM2.5 added in Phase 2)
+    # LSTM — 6-hour multi-target forecast
     lstm_cols       = [f for f in _LSTM_FEATURES if f in df.columns]
     window          = df[lstm_cols].iloc[-LOOK_BACK:].values.astype(float)
-    window_scaled   = models["feat_scaler"].transform(window)
+    window_scaled   = m["feat_scaler"].transform(window)
     X               = window_scaled.reshape(1, LOOK_BACK, len(lstm_cols))
-    forecast_scaled = models["lstm"].predict(X, verbose=0)          # (1, HORIZON, n_targets)
+    forecast_scaled = m["lstm"].predict(X, verbose=0)
 
-    n_targets = models["tgt_scaler"].n_features_in_
-    forecast_inv = models["tgt_scaler"].inverse_transform(
+    n_targets    = m["tgt_scaler"].n_features_in_
+    forecast_inv = m["tgt_scaler"].inverse_transform(
         forecast_scaled.reshape(-1, n_targets)
-    )                                                                 # (HORIZON, n_targets)
+    )
 
     def _extract(idx):
-        if n_targets > idx:
-            return [round(float(v), 2) for v in forecast_inv[:, idx]]
-        return None
+        return [round(float(v), 2) for v in forecast_inv[:, idx]] if n_targets > idx else None
 
-    forecast_aqi  = _extract(0)   # always present
-    forecast_pm25 = _extract(1)   # present when model has >= 2 targets
-    forecast_pm10 = _extract(2)   # present when model has >= 3 targets
-
-    # Current pollutant levels from the latest row
+    # Current pollutant levels
     last = df.iloc[-1]
 
     def _safe(col):
         v = last.get(col, 0.0)
         return round(float(v) if pd.notna(v) else 0.0, 2)
 
-    pollutants = {
-        "pm25":        _safe("pm25"),
-        "pm10":        _safe("pm10"),
-        "co2":         _safe("co2"),
-        "no2":         _safe("no2"),
-        "voc":         _safe("voc"),
-        "humidity":    _safe("humidity"),
-        "temperature": _safe("temperature"),
-    }
-
     result = {
-        "current_aqi":         round(aqi_pred, 2),
-        "trend_direction":     "rising" if rising else "falling",
-        "trend_confidence":    round(confidence * 100, 1),
-        "forecast_6h":        forecast_aqi,
-        "pm25_forecast_6h":   forecast_pm25,
-        "pm10_forecast_6h":   forecast_pm10,
-        "pollutants":          pollutants,
-        "timestamp":           datetime.now(timezone.utc).isoformat(),
+        "current_aqi":       round(aqi_pred, 2),
+        "trend_direction":   "rising" if rising else "falling",
+        "trend_confidence":  round(confidence * 100, 1),
+        "forecast_6h":       _extract(0),
+        "pm25_forecast_6h":  _extract(1),
+        "pm10_forecast_6h":  _extract(2),
+        "pollutants": {
+            "pm25":        _safe("pm25"),
+            "pm10":        _safe("pm10"),
+            "co2":         _safe("co2"),
+            "no2":         _safe("no2"),
+            "voc":         _safe("voc"),
+            "humidity":    _safe("humidity"),
+            "temperature": _safe("temperature"),
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
-    # Store in cache with current timestamp
-    _cache["result"] = result
-    _cache["ts"] = time.time()
-
+    _cache[sensor] = {"result": result, "ts": time.time()}
     return result
+
+
+def run_all_inference() -> dict:
+    """Run inference for all sensors in parallel and return results keyed by sensor name."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    results = {}
+    with ThreadPoolExecutor(max_workers=len(SENSOR_TOPICS)) as pool:
+        futures = {pool.submit(run_inference, sensor): sensor for sensor in SENSOR_TOPICS}
+        for fut in as_completed(futures):
+            sensor = futures[fut]
+            results[sensor] = fut.result()
+    return results

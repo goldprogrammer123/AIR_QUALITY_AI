@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
 
 from api.schemas import RecommendationResponse
-from utils.inference import run_inference
+from utils.inference import run_all_inference
 from utils.llm_engine import get_recommendation, _aqi_category
 
 router = APIRouter(prefix="/recommend", tags=["Recommendations"])
@@ -33,7 +33,10 @@ def get_health_recommendation():
 
     # ── Step 1: Get live predictions from ML models ──
     try:
-        data = run_inference()
+        all_data = run_all_inference()
+        # Use the sensor with the highest AQI for the recommendation
+        # so the advice reflects worst-case conditions
+        data = max(all_data.values(), key=lambda s: s.get("current_aqi", 0))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inference error: {e}")
 
