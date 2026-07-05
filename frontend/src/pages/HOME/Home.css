@@ -302,7 +302,7 @@
 }
 .section-heading {
   font-size: clamp(26px, 4vw, 38px);
-  font-weight: 800; color: #0f172a;
+  font-weight: 800; color: #0f2d6b;
   margin: 0 0 12px; letter-spacing: -0.5px; line-height: 1.2;
 }
 .section-heading.light { color: #ffffff; }

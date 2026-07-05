@@ -1,80 +1,3 @@
-  TRAINING RUN — 2026-07-02 23:00:01
-============================================================
-  'lands' cache OK (age: 7.4h)
-  'planning' cache OK (age: 7.4h)
-
-Phase 1 — Regression + Trend (parallel across sensors)…
-
-  ── Sensor: lands ──
-  train_regression.py
-    Regression — MAE=3.671  RMSE=5.786  R2=0.813  dataset=3569
-    [history] regression: metrics saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/model_history/training_history.json
-    Regression model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands/aqi_regression.pkl
-    ✓ done in 18.8s
-  train_trend.py
-    Trend — accuracy=0.7008  precision=0.8030  recall=0.4690  f1=0.5922  dataset=1219
-    [history] trend: metrics saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/model_history/training_history.json
-    Trend model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands/aqi_trend.pkl
-    ✓ done in 3.7s
-
-  ── Sensor: planning ──
-  train_regression.py
-    Regression — MAE=2.567  RMSE=4.299  R2=0.844  dataset=4909
-    [history] regression: metrics saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/model_history/training_history.json
-    Regression model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning/aqi_regression.pkl
-    ✓ done in 18.8s
-  train_trend.py
-    Trend — accuracy=0.7489  precision=0.7802  recall=0.6574  f1=0.7136  dataset=1134
-    [history] trend: metrics saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/model_history/training_history.json
-    Trend model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning/aqi_trend.pkl
-    ✓ done in 3.9s
-
-Phase 2 — LSTM forecast (sequential to avoid CPU contention)…
-
-  ── LSTM: lands ──
-  train_lstm_forecast.py
-    Targets  : ['aqi', 'pm25', 'pm10']
-    LSTM FORECAST RESULTS
-    Targets : ['aqi', 'pm25', 'pm10']
-    MAE     : 4.138
-    RMSE    : 7.121
-    R2      : 0.305
-    aqi       MAE=7.519  R2=0.349
-    pm25      MAE=1.954  R2=0.297
-    pm10      MAE=2.940  R2=0.268
-    [history] lstm_forecast: metrics saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/model_history/training_history.json
-    Scalers saved to /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands
-    LSTM model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands/aqi_lstm_forecast.keras
-    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-    E0000 00:00:1783022463.966530    4917 cuda_platform.cc:52] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (303)
-    ✓ done in 186.8s
-
-  ── LSTM: planning ──
-  train_lstm_forecast.py
-    Targets  : ['aqi', 'pm25', 'pm10']
-    LSTM FORECAST RESULTS
-    Targets : ['aqi', 'pm25', 'pm10']
-    MAE     : 4.088
-    RMSE    : 6.246
-    R2      : 0.159
-    aqi       MAE=7.282  R2=0.228
-    pm25      MAE=1.962  R2=0.156
-    pm10      MAE=3.020  R2=0.093
-    [history] lstm_forecast: metrics saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/model_history/training_history.json
-    Scalers saved to /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning
-    LSTM model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning/aqi_lstm_forecast.keras
-    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-    E0000 00:00:1783022622.847074    5935 cuda_platform.cc:52] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (303)
-    ✓ done in 2708.5s
-
-============================================================
-  SUCCESS — 2026-07-02 23:48:46
-============================================================
-
-
-  ── Sensor: lands ──
   train_regression.py
     Regression — MAE=3.671  RMSE=5.786  R2=0.813  dataset=3569
     [history] regression: metrics saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/model_history/training_history.json
@@ -373,5 +296,119 @@ Phase 2 — LSTM forecast (sequential to avoid CPU contention)…
 
 ============================================================
   SUCCESS — 2026-07-05 12:33:49
+============================================================
+
+
+============================================================
+  TRAINING RUN — 2026-07-05 23:00:02
+============================================================
+  'lands' cache OK (age: 11.4h)
+  'planning' cache OK (age: 11.4h)
+
+Phase 1 — Regression + Trend (parallel across sensors)…
+
+============================================================
+  TRAINING RUN — 2026-07-05 23:00:02
+============================================================
+  'lands' cache OK (age: 11.4h)
+  'planning' cache OK (age: 11.4h)
+
+Phase 1 — Regression + Trend (parallel across sensors)…
+
+  ── Sensor: lands ──
+  train_regression.py
+    Regression — MAE=2.655  RMSE=4.313  R2=0.903  dataset=4631
+    [history] regression (unknown): saved to JSON backup.
+    [history] regression (unknown): saved to PostgreSQL.
+    Regression model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands/aqi_regression.pkl
+    ✓ done in 36.2s
+  train_trend.py
+    Trend — accuracy=0.6326  precision=0.6832  recall=0.4539  f1=0.5455  dataset=1562
+    [history] trend (unknown): saved to JSON backup.
+    [history] trend (unknown): saved to PostgreSQL.
+    Trend model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands/aqi_trend.pkl
+    ✓ done in 10.0s
+
+  ── Sensor: planning ──
+  train_regression.py
+    Regression — MAE=2.708  RMSE=4.616  R2=0.868  dataset=5956
+    [history] regression (unknown): saved to JSON backup.
+    [history] regression (unknown): saved to PostgreSQL.
+    Regression model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning/aqi_regression.pkl
+    ✓ done in 36.9s
+  train_trend.py
+    Trend — accuracy=0.6853  precision=0.7245  recall=0.5299  f1=0.6121  dataset=1430
+    [history] trend (unknown): saved to JSON backup.
+    [history] trend (unknown): saved to PostgreSQL.
+    Trend model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning/aqi_trend.pkl
+    ✓ done in 9.3s
+
+Phase 2 — LSTM forecast (sequential to avoid CPU contention)…
+
+  ── LSTM: lands ──
+  train_lstm_forecast.py
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    E0000 00:00:1783281660.801299   48558 cuda_platform.cc:52] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (303)
+    ✗ FAILED
+
+  ── LSTM: planning ──
+  train_lstm_forecast.py
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    E0000 00:00:1783282022.482779   50061 cuda_platform.cc:52] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (303)
+    ✗ FAILED
+
+============================================================
+  FAILED — 2026-07-05 23:12:12
+============================================================
+
+
+  ── Sensor: lands ──
+  train_regression.py
+    Regression — MAE=2.655  RMSE=4.313  R2=0.903  dataset=4631
+    [history] regression (unknown): saved to JSON backup.
+    [history] regression (unknown): saved to PostgreSQL.
+    Regression model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands/aqi_regression.pkl
+    ✓ done in 36.2s
+  train_trend.py
+    Trend — accuracy=0.6326  precision=0.6832  recall=0.4539  f1=0.5455  dataset=1562
+    [history] trend (unknown): saved to JSON backup.
+    [history] trend (unknown): saved to PostgreSQL.
+    Trend model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/lands/aqi_trend.pkl
+    ✓ done in 10.0s
+
+  ── Sensor: planning ──
+  train_regression.py
+    Regression — MAE=2.708  RMSE=4.616  R2=0.868  dataset=5956
+    [history] regression (unknown): saved to JSON backup.
+    [history] regression (unknown): saved to PostgreSQL.
+    Regression model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning/aqi_regression.pkl
+    ✓ done in 36.9s
+  train_trend.py
+    Trend — accuracy=0.6853  precision=0.7245  recall=0.5299  f1=0.6121  dataset=1430
+    [history] trend (unknown): saved to JSON backup.
+    [history] trend (unknown): saved to PostgreSQL.
+    Trend model saved → /home/golden-eagle/Documents/coding_journey/PROJECTS/MACHINE _LEARNING/air_quality_ai/backend/models_saved/planning/aqi_trend.pkl
+    ✓ done in 9.3s
+
+Phase 2 — LSTM forecast (sequential to avoid CPU contention)…
+
+  ── LSTM: lands ──
+  train_lstm_forecast.py
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    E0000 00:00:1783281660.801299   48558 cuda_platform.cc:52] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (303)
+    ✗ FAILED
+
+  ── LSTM: planning ──
+  train_lstm_forecast.py
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    E0000 00:00:1783282022.482779   50061 cuda_platform.cc:52] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (303)
+    ✗ FAILED
+
+============================================================
+  FAILED — 2026-07-05 23:12:12
 ============================================================
 

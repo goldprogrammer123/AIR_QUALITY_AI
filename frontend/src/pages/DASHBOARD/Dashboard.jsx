@@ -6,17 +6,19 @@ import {
 } from 'recharts'
 import {
   fetchAll, fetchRecommendation, fetchSensorHistory, clearCache,
+  fetchModelHistory, downloadModelHistory,
 } from '../../services/api'
 import { getAQIColor, getAQICategory, AQI_SCALE } from '../../utils/aqi'
 import { useAuth } from '../../context/AuthContext'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
-  { id: 'overview',    icon: '⌂',  label: 'Overview'    },
-  { id: 'analytics',   icon: '◉',  label: 'Analytics'   },
-  { id: 'predictions', icon: '◐',  label: 'Predictions' },
-  { id: 'ai-advice',   icon: '◎',  label: 'AI Advice'   },
-  { id: 'alerts',      icon: '◑',  label: 'Alerts'      },
+  { id: 'overview',    icon: '⌂',  label: 'Overview',         adminOnly: false },
+  { id: 'analytics',   icon: '◉',  label: 'Analytics',        adminOnly: false },
+  { id: 'predictions', icon: '◐',  label: 'Predictions',      adminOnly: false },
+  { id: 'ai-advice',   icon: '◎',  label: 'AI Advice',        adminOnly: false },
+  { id: 'alerts',      icon: '◑',  label: 'Alerts',           adminOnly: false },
+  { id: 'model-eval',  icon: '◈',  label: 'Model Evaluation', adminOnly: true  },
 ]
 
 const DEMO_ALERTS = [
@@ -60,33 +62,33 @@ function tempDesc(v)     { return v < 20 ? 'Cool conditions' : v < 30 ? 'Comfort
 
 function getSummaryItems(aqi) {
   if (aqi <= 50) return [
-    { icon: '🛡️', section: true,  title: 'AIR QUALITY SUMMARY',    desc: 'Overall air quality is satisfactory and poses little or no risk.' },
+    { icon: '◎', section: true,  title: 'AIR QUALITY SUMMARY',    desc: 'Overall air quality is satisfactory and poses little or no risk.' },
     { icon: '🌿', section: false, title: 'Enjoy outdoor activities', desc: 'Perfect conditions for outdoor activities.' },
-    { icon: '💙', section: true,  title: 'HEALTH RECOMMENDATION',   desc: 'Ideal air quality for everyone.' },
+    { icon: '◎', section: true,  title: 'HEALTH RECOMMENDATION',   desc: 'Ideal air quality for everyone.' },
     { icon: '🚶', section: false, title: 'No precautions needed',   desc: 'Enjoy your normal outdoor routine.' },
   ]
   if (aqi <= 100) return [
-    { icon: '🛡️', section: true,  title: 'AIR QUALITY SUMMARY',      desc: 'Air quality is acceptable; some pollutants may affect sensitive people.' },
+    { icon: '◎', section: true,  title: 'AIR QUALITY SUMMARY',      desc: 'Air quality is acceptable; some pollutants may affect sensitive people.' },
     { icon: '⚠️', section: false, title: 'Sensitive groups take care', desc: 'Reduce prolonged outdoor exertion if unusually sensitive.' },
-    { icon: '💙', section: true,  title: 'HEALTH RECOMMENDATION',     desc: 'Most people can carry out normal outdoor activities.' },
+    { icon: '◎', section: true,  title: 'HEALTH RECOMMENDATION',     desc: 'Most people can carry out normal outdoor activities.' },
     { icon: '😷', section: false, title: 'Light precautions advised',  desc: 'Sensitive individuals may benefit from a light mask.' },
   ]
   if (aqi <= 150) return [
-    { icon: '⚠️', section: true,  title: 'AIR QUALITY SUMMARY',   desc: 'Sensitive groups may experience health effects.' },
+    { icon: '◎', section: true,  title: 'AIR QUALITY SUMMARY',   desc: 'Sensitive groups may experience health effects.' },
     { icon: '🏠', section: false, title: 'Limit outdoor exposure',  desc: 'Sensitive people should reduce heavy outdoor activity.' },
-    { icon: '💙', section: true,  title: 'HEALTH RECOMMENDATION',  desc: 'Children and elderly should take extra care today.' },
+    { icon: '◎', section: true,  title: 'HEALTH RECOMMENDATION',  desc: 'Children and elderly should take extra care today.' },
     { icon: '😷', section: false, title: 'Mask recommended',        desc: 'Wear an N95 mask if you go outside.' },
   ]
   return [
-    { icon: '🔴', section: true,  title: 'AIR QUALITY SUMMARY',  desc: 'Everyone may experience health effects. Avoid outdoor activity.' },
+    { icon: '◎', section: true,  title: 'AIR QUALITY SUMMARY',  desc: 'Everyone may experience health effects. Avoid outdoor activity.' },
     { icon: '🏠', section: false, title: 'Stay indoors',          desc: 'Avoid all unnecessary outdoor activity.' },
-    { icon: '💙', section: true,  title: 'HEALTH RECOMMENDATION', desc: 'Avoid outdoor exertion. Everyone should take precautions.' },
+    { icon: '◎', section: true,  title: 'HEALTH RECOMMENDATION', desc: 'Avoid outdoor exertion. Everyone should take precautions.' },
     { icon: '😷', section: false, title: 'N95 mask required',     desc: 'Wear a proper N95 respirator outdoors.' },
   ]
 }
 
 export default function Dashboard() {
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [active, setActive]     = useState('overview')
   const [sideOpen, setSideOpen] = useState(false)
@@ -103,6 +105,12 @@ export default function Dashboard() {
   const [sensorHistory, setSensorHistory]   = useState(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyError, setHistoryError]     = useState(null)
+
+  const [evalRange, setEvalRange]       = useState('week')
+  const [evalData, setEvalData]         = useState(null)
+  const [evalLoading, setEvalLoading]   = useState(false)
+  const [evalError, setEvalError]       = useState(null)
+  const [downloading, setDownloading]   = useState(false)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -136,6 +144,30 @@ export default function Dashboard() {
       .catch(() => setAdvice(''))
       .finally(() => setAdviceLoading(false))
   }, [allSensors])
+
+  useEffect(() => {
+    if (active !== 'model-eval' || !isAdmin) return
+    setEvalLoading(true)
+    setEvalError(null)
+    fetchModelHistory(evalRange)
+      .then((r) => setEvalData(r.data))
+      .catch(() => setEvalError('Could not load model evaluation data.'))
+      .finally(() => setEvalLoading(false))
+  }, [active, evalRange, isAdmin])
+
+  const handleDownload = async () => {
+    setDownloading(true)
+    try {
+      const res = await downloadModelHistory(evalRange)
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+      const a   = document.createElement('a')
+      a.href = url
+      a.download = `model_history_${evalRange}_${new Date().toISOString().slice(0,10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch { /* silent */ }
+    finally { setDownloading(false) }
+  }
 
   const handleRefresh = () => { clearCache(); loadData() }
   const handleLogout  = () => { logout(); navigate('/') }
@@ -198,7 +230,7 @@ export default function Dashboard() {
             <span className="sb-caret">▾</span>
           </div>
           <nav className="sb-nav">
-            {NAV_ITEMS.map((item) => (
+            {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map((item) => (
               <button
                 key={item.id}
                 className={`sb-item ${active === item.id ? 'active' : ''}`}
@@ -206,6 +238,7 @@ export default function Dashboard() {
               >
                 <span className="sb-icon">{item.icon}</span>
                 <span className="sb-label">{item.label}</span>
+                {item.adminOnly && <span className="sb-admin-tag">ADMIN</span>}
               </button>
             ))}
           </nav>
@@ -593,6 +626,78 @@ export default function Dashboard() {
                     <span className="thr-soon">Soon</span>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {active === 'model-eval' && isAdmin && (
+            <section className="eval-section">
+              {/* Controls */}
+              <div className="eval-controls wcard">
+                <div className="eval-range-tabs">
+                  {['day', 'week', 'month'].map((r) => (
+                    <button
+                      key={r}
+                      className={`eval-range-tab ${evalRange === r ? 'active' : ''}`}
+                      onClick={() => setEvalRange(r)}
+                    >
+                      {r === 'day' ? 'Today' : r === 'week' ? 'Last 7 Days' : 'Last 30 Days'}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  className="eval-download-btn"
+                  onClick={handleDownload}
+                  disabled={downloading || evalLoading}
+                >
+                  {downloading ? 'Downloading…' : '↓ Download CSV'}
+                </button>
+              </div>
+
+              {/* Table */}
+              <div className="wcard eval-table-wrap">
+                <div className="card-title">Model Training Runs</div>
+                {evalLoading ? (
+                  <div className="eval-loading"><div className="spinner" /><p>Loading…</p></div>
+                ) : evalError ? (
+                  <p className="eval-error">{evalError}</p>
+                ) : evalData?.runs?.length === 0 ? (
+                  <p className="eval-empty">No training runs found for this period.</p>
+                ) : (
+                  <div className="eval-table-scroll">
+                    <table className="eval-table">
+                      <thead>
+                        <tr>
+                          <th>Model</th>
+                          <th>Sensor</th>
+                          <th>Dataset</th>
+                          <th>R²</th>
+                          <th>MAE</th>
+                          <th>RMSE</th>
+                          <th>Trained At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {evalData?.runs?.map((row) => (
+                          <tr key={row.id}>
+                            <td><span className="eval-model-badge">{row.model_name}</span></td>
+                            <td>{row.sensor}</td>
+                            <td>{row.dataset_size?.toLocaleString() ?? '—'}</td>
+                            <td className={row.r2 >= 0.8 ? 'eval-good' : row.r2 >= 0.6 ? 'eval-ok' : 'eval-warn'}>
+                              {row.r2 != null ? row.r2.toFixed(3) : '—'}
+                            </td>
+                            <td>{row.mae  != null ? row.mae.toFixed(3)  : '—'}</td>
+                            <td>{row.rmse != null ? row.rmse.toFixed(3) : '—'}</td>
+                            <td className="eval-date">{new Date(row.trained_at).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                <p className="eval-count">
+                  {evalData?.count ?? 0} run{evalData?.count !== 1 ? 's' : ''} — {evalRange === 'day' ? 'today' : evalRange === 'week' ? 'last 7 days' : 'last 30 days'}
+                </p>
               </div>
             </section>
           )}

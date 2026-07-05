@@ -8,8 +8,8 @@ class PollutantLevels(BaseModel):
     co2:         float
     no2:         float
     voc:         float
-    humidity:    float
-    temperature: float
+    humidity:    Optional[float]
+    temperature: Optional[float]
 
 
 class SensorPrediction(BaseModel):

@@ -74,20 +74,16 @@ def get_recommendation(inference_result: dict) -> str:
         + _fmt_hourly("PM10",  pm10_6h, " µg/m³")
     )
 
+    def _line(label, val, unit=''):
+        return f"- {label}: {val}{unit}\n" if val is not None else ''
+
     prompt = f"""You are an air quality health expert. Based on the EXACT live readings below,
 provide specific health effects, who is at risk right now, and what people must do immediately
 to protect themselves. Be direct, practical, and use simple language.
 
 LIVE AIR QUALITY READINGS:
 - AQI: {aqi} — Category: {category}
-- PM2.5: {p['pm25']} µg/m³
-- PM10:  {p['pm10']} µg/m³
-- CO2:   {p['co2']} ppm
-- NO2:   {p['no2']} µg/m³
-- VOC:   {p['voc']}
-- Humidity:    {p['humidity']}%
-- Temperature: {p['temperature']}°C
-- Trend: AQI is {trend} (confidence: {confidence}%)
+{_line('PM2.5', p['pm25'], ' µg/m³')}{_line('PM10', p['pm10'], ' µg/m³')}{_line('CO2', p['co2'], ' ppm')}{_line('NO2', p['no2'], ' µg/m³')}{_line('VOC', p['voc'])}{_line('Humidity', p['humidity'], '%')}{_line('Temperature', p['temperature'], '°C')}- Trend: AQI is {trend} (confidence: {confidence}%)
 
 6-HOUR FORECAST (hourly):
 {forecast_block}

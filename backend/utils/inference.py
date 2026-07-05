@@ -190,7 +190,9 @@ def run_inference(sensor: str) -> dict:
     last = df.iloc[-1]
 
     def _safe(col):
-        v = last.get(col, 0.0)
+        if col not in last.index:
+            return None
+        v = last[col]
         return round(float(v) if pd.notna(v) else 0.0, 2)
 
     result = {
@@ -225,4 +227,13 @@ def run_all_inference() -> dict:
         for fut in as_completed(futures):
             sensor = futures[fut]
             results[sensor] = fut.result()
+
+    # Same campus — use lands temperature/humidity for both sensors
+    if "planning" in results and "lands" in results:
+        temp = results["lands"]["pollutants"].get("temperature")
+        hum  = results["lands"]["pollutants"].get("humidity")
+        for sensor in results:
+            results[sensor]["pollutants"]["temperature"] = temp
+            results[sensor]["pollutants"]["humidity"]    = hum
+
     return results

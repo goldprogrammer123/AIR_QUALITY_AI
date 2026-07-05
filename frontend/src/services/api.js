@@ -83,3 +83,27 @@ export const clearCache = () => {
     'sensor_history_24', 'sensor_history_168', 'sensor_history_336', 'sensor_history_720',
   ].forEach(k => sessionStorage.removeItem(`aq_cache_${k}`))
 }
+
+/* ─── Auth interceptor ───────────────────────────────────────────────────────
+   Attach JWT token to every request when present in localStorage.
+*/
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem('aqi_token')
+  if (token) config.headers['Authorization'] = `Bearer ${token}`
+  return config
+})
+
+/* ─── Auth endpoints ─────────────────────────────────────────────────────── */
+export const registerUser = (data) => API.post('/auth/register', data)
+export const loginUser    = (data) => API.post('/auth/login', data)
+export const fetchMe      = ()     => API.get('/auth/me')
+
+/* ─── Admin: model history ───────────────────────────────────────────────── */
+export const fetchModelHistory = (range = 'week') =>
+  API.get(`/history/metrics?range=${range}`)
+
+export const fetchModelHistoryByModel = (model, range = 'week') =>
+  API.get(`/history/metrics/${model}?range=${range}`)
+
+export const downloadModelHistory = (range = 'week') =>
+  API.get(`/history/metrics/download?range=${range}`, { responseType: 'blob' })
