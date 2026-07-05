@@ -75,13 +75,13 @@
 .map-title {
   font-size: 32px;
   font-weight: 800;
-  color: #1a3a5c;
+  color: #ffffff;
   margin-bottom: 6px;
 }
 
 .map-sub {
   font-size: 15px;
-  color: #4a6fa5;
+  color: rgba(255, 255, 255, 0.68);
   line-height: 1.6;
 }
 

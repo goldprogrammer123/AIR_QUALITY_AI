@@ -1,272 +1,282 @@
-/* ══════════════════════════════════
-   RESPONSIVE — Health Guidance
-   ══════════════════════════════════ */
+/* ══════════════════════════════════════
+   HEALTH GUIDANCE — full redesign
+══════════════════════════════════════ */
 
-/* Large tablet */
-@media (max-width: 1024px) {
-  .hg-page      { padding: 20px 20px 48px; }
-  .hg-title     { font-size: 26px; }
-  .groups-grid  { grid-template-columns: repeat(3, 1fr); }
-}
+.hg-page { width: 100%; }
 
-/* Tablet / mobile */
-@media (max-width: 768px) {
-  .hg-page      { padding: 16px 16px 40px; }
-  .hg-title     { font-size: 24px; }
-  .hg-sub       { font-size: 14px; }
+/* ── Sections ── */
+.hg-dark-section  { background: #1E2D4E; padding: 56px 0; }
+.hg-white-section { background: #f0f4f8; padding: 64px 0; }
+.hg-border-top    { border-top: 1px solid #e2e8f0; }
 
-  /* Location tabs scroll horizontally */
-  .location-tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
-  .loc-tab       { white-space: nowrap; flex-shrink: 0; }
-
-  /* AQI banner stacks */
-  .aqi-banner       { flex-direction: column; gap: 16px; padding: 20px; }
-  .banner-aqi       { font-size: 50px; }
-  .banner-right     { min-width: unset; }
-
-  /* Groups — 2 columns */
-  .groups-grid      { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .group-icon       { font-size: 28px; }
-
-  /* AI advice */
-  .ai-advice-card   { padding: 20px; }
-  .ai-para          { font-size: 14px; }
-
-  /* AQI scale table — make it scrollable */
-  .scale-card       { overflow-x: auto; padding: 0; }
-  .scale-table      { min-width: 520px; }
-  .scale-table th,
-  .scale-table td   { padding: 12px 12px; font-size: 13px; }
-}
-
-/* Small phones */
-@media (max-width: 480px) {
-  .hg-title     { font-size: 22px; }
-  .banner-aqi   { font-size: 42px; }
-  .groups-grid  { grid-template-columns: 1fr; }
-  .group-card   { padding: 18px 16px; }
-  .ai-advice-card { padding: 16px; }
-}
-
-/* ─── actual class definitions follow ─── */
-.hg-page {
+.hg-inner {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 24px 60px;
+  padding: 0 32px;
 }
 
-/* ── Header ── */
-.hg-header { margin-bottom: 28px; }
+.hg-inner.hg-full {
+  max-width: 1500px;
+  padding: 0 48px;
+}
 
+/* ── Eyebrow ── */
+.hg-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.50);
+  margin: 0 0 16px;
+}
+.hg-eyebrow.blue { color: #2563eb; }
+
+/* ── Titles ── */
 .hg-title {
-  font-size: 32px;
+  font-size: 42px;
   font-weight: 800;
-  color: #1a3a5c;
-  margin-bottom: 8px;
+  color: #ffffff;
+  margin: 0 0 14px;
+  line-height: 1.15;
 }
 
 .hg-sub {
   font-size: 15px;
-  color: #4a6fa5;
-  line-height: 1.6;
-  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.7;
+  max-width: 640px;
+  margin: 0 0 28px;
 }
 
-.location-tabs {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.hg-section-heading {
+  font-size: clamp(24px, 3.5vw, 34px);
+  font-weight: 800;
+  color: #0f2d6b;
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+.hg-section-heading.light { color: #ffffff; }
+.hg-blue-heading { color: #0f2d6b !important; }
+
+.hg-section-sub {
+  font-size: 15px;
+  color: #475569;
+  line-height: 1.7;
+  max-width: 620px;
+  margin: 0 0 36px;
 }
 
-.loc-tab {
-  padding: 10px 20px;
+/* ── Sensor tabs ── */
+.hg-sensor-tabs { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap; }
+
+.hg-tab {
+  padding: 10px 24px;
   border-radius: 50px;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.08);
   font-size: 14px;
   font-weight: 600;
-  color: #4a6fa5;
+  color: rgba(255, 255, 255, 0.65);
   cursor: pointer;
   transition: all 0.2s;
 }
+.hg-tab:hover  { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.hg-tab.active { background: #ffffff; border-color: #ffffff; color: #1E2D4E; }
 
-.loc-tab:hover {
-  background: rgba(2, 136, 209, 0.10);
-  color: #0277bd;
-}
-
-.loc-tab.active {
-  background: linear-gradient(135deg, rgba(2, 136, 209, 0.22), rgba(56, 142, 60, 0.14));
-  border-color: rgba(2, 136, 209, 0.48);
-  color: #0277bd;
-}
-
-/* ── AQI Banner ── */
-.aqi-banner {
+/* ── AQI Status bar ── */
+.hg-status-bar {
   display: flex;
   align-items: center;
-  gap: 32px;
-  padding: 28px 32px;
-  margin-bottom: 36px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px 24px;
   flex-wrap: wrap;
+  row-gap: 16px;
+  gap: 0;
 }
 
-.banner-left { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-
-.banner-location {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6a8faf;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-
-.banner-aqi {
-  font-size: 64px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -2px;
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.banner-unit {
-  font-size: 20px;
-  font-weight: 600;
-  color: #4a6fa5 !important;
-}
-
-.banner-cat {
-  display: inline-block;
-  padding: 5px 16px;
-  border-radius: 50px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.banner-right {
-  flex: 1;
-  min-width: 200px;
-}
-
-.banner-msg {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #2c4a6a;
-}
-
-/* ── Section headings ── */
-.section-heading {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a3a5c;
-  margin: 32px 0 16px;
+.hg-aqi-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 3px solid;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 16px;
 }
+.hg-aqi-num { font-size: 22px; font-weight: 800; }
 
-.section-heading::before {
-  content: '';
-  display: inline-block;
-  width: 4px;
-  height: 22px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #0288d1, #388e3c);
-}
-
-/* ── Group cards ── */
-.groups-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 8px;
-}
-
-.group-card {
-  padding: 24px 20px;
+.hg-status-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-  transition: transform 0.2s;
+  gap: 4px;
+  padding: 0 18px;
 }
 
-.group-card:hover { transform: translateY(-4px); }
-
-.group-icon { font-size: 36px; }
-
-.group-label {
-  font-size: 15px;
+.hg-stat-label {
+  font-size: 11px;
   font-weight: 700;
-  color: #1a3a5c;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+.hg-stat-label.blue { color: #2563eb; }
+
+.hg-stat-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+}
+.hg-stat-val.dark { color: #1e293b; }
+
+.hg-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: #e2e8f0;
+  flex-shrink: 0;
 }
 
-.group-advice {
-  font-size: 13px;
-  line-height: 1.65;
-  color: #4a6fa5;
+/* ══════════════════════════════════════
+   SECTION 2 — Group cards
+══════════════════════════════════════ */
+.hg-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
-/* ── AI advice ── */
-.ai-advice-card {
-  padding: 28px 32px;
-  margin-bottom: 8px;
+.hg-group-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 32px 28px 32px 24px;
+  border-left: 5px solid #2563eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  transition: transform 0.15s, box-shadow 0.15s;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hg-group-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.10); }
+
+.hg-group-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
 }
 
-.advice-loading {
+.hg-group-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hg-risk-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 50px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hg-group-advice {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════
+   SECTION 3 — AI Analysis (landscape 2-col)
+══════════════════════════════════════ */
+.hg-ai-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.hg-ai-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 28px 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hg-ai-sec-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hg-diamond { color: #2563eb; font-size: 14px; }
+
+.hg-ai-sec-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.hg-ai-sec-body {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #334155;
+  margin: 0;
+}
+
+.hg-advice-loading {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #4a6fa5;
+  padding: 32px;
+  color: #64748b;
   font-size: 14px;
 }
 
-.ai-sections { display: flex; flex-direction: column; gap: 16px; }
-
-.ai-para {
-  font-size: 15px;
-  line-height: 1.8;
-  color: #2c4a6a;
+/* ══════════════════════════════════════
+   SECTION 4 — AQI Scale Table
+══════════════════════════════════════ */
+.hg-scale-wrap {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  overflow: hidden;
 }
 
-/* ── AQI Scale Table ── */
-.scale-card {
-  padding: 8px;
-  overflow-x: auto;
-}
-
-.scale-table {
+.hg-scale-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
 }
 
-.scale-table th {
-  padding: 14px 16px;
+.hg-scale-table th {
+  padding: 14px 20px;
   text-align: left;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #6a8faf;
-  border-bottom: 1px solid rgba(255,255,255,0.35);
+  letter-spacing: 0.10em;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
 }
 
-.scale-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.25);
+.hg-scale-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
 }
+.hg-scale-table tr:last-child td { border-bottom: none; }
 
-.scale-table tr:last-child td { border-bottom: none; }
+.hg-scale-current td { background: rgba(255, 255, 255, 0.08); }
 
-.scale-table tr:hover td { background: rgba(255,255,255,0.12); }
-
-.scale-dot {
+.hg-scale-dot {
   display: inline-block;
   width: 10px;
   height: 10px;
@@ -275,13 +285,66 @@
   vertical-align: middle;
 }
 
-.scale-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
+.hg-scale-range {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  vertical-align: middle;
 }
 
-.scale-desc { color: #4a6fa5; line-height: 1.5; }
+.hg-current-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+  padding: 2px 8px;
+  border-radius: 50px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.hg-scale-badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 50px;
+  display: inline-block;
+}
+
+.hg-scale-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.60);
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .hg-title { font-size: 34px; }
+  .hg-groups-grid { grid-template-columns: repeat(2, 1fr); }
+  .hg-ai-grid { grid-template-columns: 1fr; }
+  .hg-inner.hg-full { padding: 0 32px; }
+}
+
+@media (max-width: 768px) {
+  .hg-dark-section, .hg-white-section { padding: 40px 0; }
+  .hg-inner { padding: 0 20px; }
+  .hg-inner.hg-full { padding: 0 20px; }
+  .hg-title { font-size: 28px; }
+  .hg-section-heading { font-size: 22px; }
+  .hg-status-bar { row-gap: 12px; }
+  .hg-stat-divider { display: none; }
+  .hg-status-col { padding: 0 12px; }
+  .hg-groups-grid { grid-template-columns: 1fr; }
+  .hg-ai-grid { grid-template-columns: 1fr; }
+  .hg-ai-card { padding: 20px; }
+  .hg-scale-wrap { overflow-x: auto; }
+  .hg-scale-table { min-width: 520px; }
+}
+
+@media (max-width: 480px) {
+  .hg-title { font-size: 24px; }
+  .hg-group-card { min-height: auto; }
+}

@@ -2,11 +2,32 @@ version: "3.9"
 
 services:
 
+  # ── PostgreSQL — user accounts & model history ──────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: aq_db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-aqi_db}
+      POSTGRES_USER:     ${POSTGRES_USER:-aqi_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aqi_pass}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aqi_user} -d ${POSTGRES_DB:-aqi_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ── FastAPI backend ─────────────────────────────────────────────────────
   backend:
     image: goldprogrammer123/airquality-backend:latest
     container_name: aq_backend
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
 
     # Secrets come from .env on the Oracle server (not committed to git)
     env_file: .env
@@ -39,6 +60,9 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+volumes:
+  pg_data:
 
 networks:
   default:

@@ -21,3 +21,7 @@ backend/**/__pycache__/
 # Docker runtime volumes (created on the server, not committed)
 data_cache/
 
+# Lock files and large data caches
+backend/model_history/training_history.lock
+backend/data/cache/raw_data_*.parquet
+

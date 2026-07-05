@@ -53,9 +53,13 @@ async function _cached(key, ttlMs, fn) {
   return res
 }
 
-/* All three models in one call — cached for 5 minutes */
+/* All sensors, all models — returns { sensors: { lands: {...}, planning: {...} } } */
 export const fetchAll = () =>
   _cached('predict_all', 5 * 60 * 1000, () => API.get('/predict/all'))
+
+/* Single sensor — 'lands' or 'planning' */
+export const fetchSensor = (sensor) =>
+  _cached(`predict_${sensor}`, 5 * 60 * 1000, () => API.get(`/predict/sensor/${sensor}`))
 
 /* LLM health advice — hits Groq, cached for 10 minutes */
 export const fetchRecommendation = () =>
@@ -71,14 +75,35 @@ export const fetchSensorHistory = (hours = 24) =>
     API.get(`/history/sensor?hours=${hours}`)
   )
 
-/* Individual model endpoints (used only when explicitly requested) */
-export const fetchCurrent  = () => API.get('/predict/current')
-export const fetchTrend    = () => API.get('/predict/trend')
-export const fetchForecast = () => API.get('/predict/forecast')
-
 /* Force-clear all cached data and re-fetch (used by Dashboard refresh button) */
 export const clearCache = () => {
-  ['predict_all', 'recommend', 'history',
-   'sensor_history_24', 'sensor_history_168', 'sensor_history_336', 'sensor_history_720'
+  [
+    'predict_all', 'predict_lands', 'predict_planning',
+    'recommend', 'history',
+    'sensor_history_24', 'sensor_history_168', 'sensor_history_336', 'sensor_history_720',
   ].forEach(k => sessionStorage.removeItem(`aq_cache_${k}`))
 }
+
+/* ─── Auth interceptor ───────────────────────────────────────────────────────
+   Attach JWT token to every request when present in localStorage.
+*/
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem('aqi_token')
+  if (token) config.headers['Authorization'] = `Bearer ${token}`
+  return config
+})
+
+/* ─── Auth endpoints ─────────────────────────────────────────────────────── */
+export const registerUser = (data) => API.post('/auth/register', data)
+export const loginUser    = (data) => API.post('/auth/login', data)
+export const fetchMe      = ()     => API.get('/auth/me')
+
+/* ─── Admin: model history ───────────────────────────────────────────────── */
+export const fetchModelHistory = (range = 'week') =>
+  API.get(`/history/metrics?range=${range}`)
+
+export const fetchModelHistoryByModel = (model, range = 'week') =>
+  API.get(`/history/metrics/${model}?range=${range}`)
+
+export const downloadModelHistory = (range = 'week') =>
+  API.get(`/history/metrics/download?range=${range}`, { responseType: 'blob' })

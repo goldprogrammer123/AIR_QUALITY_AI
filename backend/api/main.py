@@ -28,22 +28,22 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import predict, recommend, history
+from api.routes import predict, recommend, history, auth
 from utils.inference import load_models
+from db.database import init_db
 
 
 # ─────────────────────────────────────────────
 # LIFESPAN — runs once when the server starts
-# Load all ML models into memory so every API
-# request gets a fast response without re-loading
 # ─────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print("Initialising database tables...")
+    init_db()
     print("Loading ML models into memory...")
     load_models()
     print("API ready.")
     yield
-    # Nothing to clean up on shutdown
 
 
 # ─────────────────────────────────────────────
@@ -76,6 +76,7 @@ app.add_middleware(
 # REGISTER ROUTE GROUPS
 # Each router handles its own prefix and logic
 # ─────────────────────────────────────────────
+app.include_router(auth.router)       # /auth/*
 app.include_router(predict.router)    # /predict/*
 app.include_router(recommend.router)  # /recommend/
 app.include_router(history.router)    # /history/*

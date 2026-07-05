@@ -1,67 +1,130 @@
 """
 History Routes
 ==============
-Exposes the training history JSON so you can track how
-model performance has changed over time.
-
-  GET /history/metrics              — all models, all runs
-  GET /history/metrics/{model_name} — one specific model
-                                      e.g. /history/metrics/regression
-                                           /history/metrics/trend
-                                           /history/metrics/lstm_forecast
+  GET  /history/metrics              — all model runs (DB, admin only)
+  GET  /history/metrics/download     — CSV download filtered by range (admin only)
+  GET  /history/metrics/{model_name} — one specific model (DB, admin only)
+  GET  /history/sensor               — AQI/PM sensor history from InfluxDB
 """
 
+import io
 import json
 import sys
 import numpy as np
 import pandas as pd
+from datetime import datetime, timedelta
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from data.fetch_data import fetch_recent_data
 from utils.aqi_calculator import compute_aqi, pm25_bp, pm10_bp, no2_bp, so2_bp
+from utils.auth_utils import require_admin
+from db.database import get_db
+from db.models import ModelHistory
 
 router = APIRouter(prefix="/history", tags=["History"])
 
-# Path to the training history file saved by history_manager.py
 HISTORY_FILE = Path(__file__).resolve().parents[2] / "model_history" / "training_history.json"
 
 
-@router.get("/metrics")
-def get_all_metrics():
-    """
-    Return the full training history for all models.
-    Each entry includes dataset size, MAE, RMSE, R2, and timestamp.
-    """
-    if not HISTORY_FILE.exists():
-        raise HTTPException(status_code=404, detail="Training history file not found.")
+def _range_cutoff(range_str: str) -> datetime:
+    cutoffs = {"day": timedelta(days=1), "week": timedelta(weeks=1), "month": timedelta(days=30)}
+    delta = cutoffs.get(range_str, timedelta(weeks=1))
+    return datetime.utcnow() - delta
 
-    with open(HISTORY_FILE, "r") as f:
-        return json.load(f)
+
+def _rows_to_list(rows):
+    return [
+        {
+            "id":           r.id,
+            "model_name":   r.model_name,
+            "sensor":       r.sensor,
+            "dataset_size": r.dataset_size,
+            "r2":           r.r2,
+            "mae":          r.mae,
+            "rmse":         r.rmse,
+            "trained_at":   r.trained_at.isoformat(),
+        }
+        for r in rows
+    ]
+
+
+@router.get("/metrics")
+def get_all_metrics(
+    range: str = Query("week", description="day | week | month"),
+    db: Session = Depends(get_db),
+    _admin = Depends(require_admin),
+):
+    cutoff = _range_cutoff(range)
+    rows = (
+        db.query(ModelHistory)
+        .filter(ModelHistory.trained_at >= cutoff)
+        .order_by(ModelHistory.trained_at.desc())
+        .all()
+    )
+    return {"range": range, "count": len(rows), "runs": _rows_to_list(rows)}
+
+
+@router.get("/metrics/download")
+def download_metrics(
+    range: str = Query("week", description="day | week | month"),
+    db: Session = Depends(get_db),
+    _admin = Depends(require_admin),
+):
+    cutoff = _range_cutoff(range)
+    rows = (
+        db.query(ModelHistory)
+        .filter(ModelHistory.trained_at >= cutoff)
+        .order_by(ModelHistory.trained_at.asc())
+        .all()
+    )
+
+    df = pd.DataFrame([
+        {
+            "model_name":   r.model_name,
+            "sensor":       r.sensor,
+            "dataset_size": r.dataset_size,
+            "r2":           r.r2,
+            "mae":          r.mae,
+            "rmse":         r.rmse,
+            "trained_at":   r.trained_at.isoformat(),
+        }
+        for r in rows
+    ])
+
+    buf = io.StringIO()
+    df.to_csv(buf, index=False)
+    buf.seek(0)
+
+    filename = f"model_history_{range}_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @router.get("/metrics/{model_name}")
-def get_model_metrics(model_name: str):
-    """
-    Return training history for a specific model.
-    Valid model names: regression, trend, lstm_forecast, forecast_xgboost
-    """
-    if not HISTORY_FILE.exists():
-        raise HTTPException(status_code=404, detail="Training history file not found.")
-
-    with open(HISTORY_FILE, "r") as f:
-        history = json.load(f)
-
-    # Check the model name exists in the history
-    if model_name not in history:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Model '{model_name}' not found. Available models: {list(history.keys())}",
-        )
-
-    return {model_name: history[model_name]}
+def get_model_metrics(
+    model_name: str,
+    range: str = Query("week", description="day | week | month"),
+    db: Session = Depends(get_db),
+    _admin = Depends(require_admin),
+):
+    cutoff = _range_cutoff(range)
+    rows = (
+        db.query(ModelHistory)
+        .filter(ModelHistory.model_name == model_name, ModelHistory.trained_at >= cutoff)
+        .order_by(ModelHistory.trained_at.desc())
+        .all()
+    )
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"No history for model '{model_name}' in this range.")
+    return {"model_name": model_name, "range": range, "runs": _rows_to_list(rows)}
 
 
 @router.get("/sensor")

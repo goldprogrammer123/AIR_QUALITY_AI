@@ -1,35 +1,30 @@
 from pathlib import Path
 import sys
+import argparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 import joblib
-import pandas as pd
 import numpy as np
 
-
 from sklearn.ensemble import RandomForestRegressor
-# import of retraining the model 
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from utils.model_backups import backup_model
 from utils.history_manager import save_metrics
-
-from sklearn.metrics import (
-    mean_absolute_error,
-    mean_squared_error,
-    r2_score
-)
-
 from features.build_features import build_features
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--sensor", default=None, help="Sensor key: 'lands' or 'planning'")
+args = parser.parse_args()
+SENSOR = args.sensor
 
 # --------------------------------
 # LOAD FEATURED DATASET
 # --------------------------------
 
-X, y, df = build_features()
+X, y, df = build_features(sensor=SENSOR)
 
 print("Dataset Shape:", df.shape)
 
@@ -70,23 +65,6 @@ model.fit(X_train, y_train)
 print("Model trained successfully!")
 
 # --------------------------------
-# FEATURE IMPORTANCE
-# --------------------------------
-
-# importance = pd.DataFrame({
-#     "feature": X.columns,
-#     "importance": model.feature_importances_
-# })
-
-# print("\nFeature Importance")
-# print(
-#     importance.sort_values(
-#         by="importance",
-#         ascending=False
-#     )
-# )
-
-# --------------------------------
 # PREDICTIONS + EVALUATION
 # --------------------------------
 
@@ -113,12 +91,13 @@ save_metrics(
 # --------------------------------
 # SAVE MODEL
 # --------------------------------
-# Saving backups model 
-MODEL_PATH = BASE_DIR / "models_saved" / "aqi_regression.pkl"
+model_dir = BASE_DIR / "models_saved" / (SENSOR if SENSOR else "")
+model_dir.mkdir(parents=True, exist_ok=True)
+MODEL_PATH = model_dir / "aqi_regression.pkl"
 
-backup_model(MODEL_PATH, model_name="regression")
+backup_model(MODEL_PATH, model_name=f"regression_{SENSOR or 'combined'}")
 joblib.dump(model, MODEL_PATH)
-print("Regression model saved")
+print(f"Regression model saved → {MODEL_PATH}")
 
 
 
