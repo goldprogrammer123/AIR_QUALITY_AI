@@ -219,14 +219,26 @@ def run_inference(sensor: str) -> dict:
 
 
 def run_all_inference() -> dict:
-    """Run inference for all sensors in parallel and return results keyed by sensor name."""
+    """
+    Run inference for all sensors in parallel and return results keyed by sensor name.
+    A sensor that fails (e.g. offline device, no recent data) is skipped rather than
+    failing the whole batch — callers still get results for the sensors that are up.
+    """
     from concurrent.futures import ThreadPoolExecutor, as_completed
     results = {}
+    errors = {}
     with ThreadPoolExecutor(max_workers=len(SENSOR_TOPICS)) as pool:
         futures = {pool.submit(run_inference, sensor): sensor for sensor in SENSOR_TOPICS}
         for fut in as_completed(futures):
             sensor = futures[fut]
-            results[sensor] = fut.result()
+            try:
+                results[sensor] = fut.result()
+            except Exception as e:
+                errors[sensor] = str(e)
+                print(f"WARNING: inference failed for sensor '{sensor}': {e}")
+
+    if not results:
+        raise ValueError(f"Inference failed for all sensors: {errors}")
 
     # Same campus — use lands temperature/humidity for both sensors
     if "planning" in results and "lands" in results:

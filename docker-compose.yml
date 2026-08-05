@@ -34,7 +34,7 @@ services:
 
     volumes:
       - ./backend/model_history:/app/model_history
-      - ./data_cache:/app/data/cache
+      - ./backend/data/cache:/app/data/cache
 
     # No host port — backend is only reachable from inside the Docker network.
     # The frontend nginx container proxies /api/* to it on backend:8000.
